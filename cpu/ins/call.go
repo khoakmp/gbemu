@@ -35,7 +35,7 @@ func (c *CallInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint
 	}
 CALL:
 	curPC := regSet.PC.Read16Bit()
-	pushWordOntoStack(regSet, mmUnit, curPC)
+	PushWordOntoStack(regSet, mmUnit, curPC)
 	regSet.PC.Write16Bit(c.R.Read16Bit(regSet, mmUnit, param))
 	return 24
 }

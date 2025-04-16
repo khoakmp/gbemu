@@ -20,7 +20,7 @@ RST $30: F7
 RST $38: FF
 */
 func (r *RstInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	pushWordOntoStack(regSet, mmUnit, regSet.PC.Read16Bit())
+	PushWordOntoStack(regSet, mmUnit, regSet.PC.Read16Bit())
 	switch r.OpCode {
 	case 0xc7:
 		regSet.PC.Write16Bit(0x00)

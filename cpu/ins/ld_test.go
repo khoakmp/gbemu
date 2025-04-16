@@ -14,13 +14,9 @@ import (
 )
 
 func TestLd8BitRegToReg(t *testing.T) {
-	vRam := vram.NewGbVram()
-	iorg := iors.NewIORegisterSet()
-	oAm := oam.NewGbOam()
-	mBC := mbc.NewMbc1(64<<10, 16<<10)
-	mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
-	regSet := rs.NewRegisterSet()
+	mUnit, regSet, inSet := createModules()
 
+	//var ins Instruction
 	var A, B, C, D, E, H, L *rs.Register8Bit
 
 	A, B, C = regSet.A, regSet.B, regSet.C
@@ -34,8 +30,8 @@ func TestLd8BitRegToReg(t *testing.T) {
 	H.Write8Bit(15)
 	L.Write8Bit(16)
 
-	arguments := args.NewArgumentSet(regSet)
-	inSet := NewInstructionSet(arguments)
+	//arguments := args.NewArgumentSet(regSet)
+	//	inSet := NewInstructionSet(arguments)
 	var ins Instruction
 
 	ins = inSet.GetInstruction(0x78)
@@ -65,13 +61,9 @@ func TestLd8BitRegToReg(t *testing.T) {
 }
 
 func TestLd8BitImmediateToReg(t *testing.T) {
-	vRam := vram.NewGbVram()
-	iorg := iors.NewIORegisterSet()
-	oAm := oam.NewGbOam()
-	mBC := mbc.NewMbc1(64<<10, 16<<10)
-	mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
-	regSet := rs.NewRegisterSet()
+	mUnit, regSet, inSet := createModules()
 
+	//var ins Instruction
 	var A, B, C, D, E, H, L *rs.Register8Bit
 
 	A, B, C = regSet.A, regSet.B, regSet.C
@@ -84,8 +76,8 @@ func TestLd8BitImmediateToReg(t *testing.T) {
 	H.Write8Bit(15)
 	L.Write8Bit(16)
 
-	arguments := args.NewArgumentSet(regSet)
-	inSet := NewInstructionSet(arguments)
+	//arguments := args.NewArgumentSet(regSet)
+	//inSet := NewInstructionSet(arguments)
 	var ins Instruction
 	var val uint8
 	ins = inSet.GetInstruction(0x3e)
@@ -124,12 +116,15 @@ func TestLd8BitImmediateToReg(t *testing.T) {
 	assert.Equal(t, val, L.Read8Bit())
 }
 func TestLd8BitDualRegister(t *testing.T) {
+	//mUnit, regSet, inSet := createModules()
 	vRam := vram.NewGbVram()
-	iorg := iors.NewIORegisterSet()
+	iorg := iors.NewMockIORegisterSet()
 	oAm := oam.NewGbOam()
 	mBC := mbc.NewMbc1(64<<10, 16<<10)
 	mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
 	regSet := rs.NewRegisterSet()
+	arguments := args.NewArgumentSet(regSet)
+	inSet := NewInstructionSet(arguments)
 
 	var A, B, C, D, E, H, L *rs.Register8Bit
 
@@ -143,8 +138,7 @@ func TestLd8BitDualRegister(t *testing.T) {
 	H.Write8Bit(15)
 	L.Write8Bit(16)
 
-	arguments := args.NewArgumentSet(regSet)
-	inSet := NewInstructionSet(arguments)
+	//arguments := args.NewArgumentSet(regSet)
 	var ins Instruction
 	// Write from Register8Bit to Memory at address pointed by HL
 	var addr uint16 = 0xc000

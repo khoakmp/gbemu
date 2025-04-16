@@ -3,7 +3,7 @@ package timer
 import (
 	"testing"
 
-	"github.com/khoakmp/gbemu/iors"
+	"github.com/khoakmp/gbemu/intr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +16,7 @@ func TestTimer(t *testing.T) {
 		ClockSelect: 1, // check bit 5 falling edge
 	}
 
-	iF := &iors.IF{}
+	iF := &intr.IF{}
 	ti := NewTimerSystem(timerState, iF)
 	ti.Update(24)
 

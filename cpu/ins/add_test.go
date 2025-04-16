@@ -3,25 +3,13 @@ package ins
 import (
 	"testing"
 
-	"github.com/khoakmp/gbemu/cpu/args"
-	"github.com/khoakmp/gbemu/iors"
-	"github.com/khoakmp/gbemu/mmu"
-	"github.com/khoakmp/gbemu/mmu/mbc"
-	"github.com/khoakmp/gbemu/mmu/oam"
-	"github.com/khoakmp/gbemu/mmu/vram"
 	"github.com/khoakmp/gbemu/rs"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAdd(t *testing.T) {
-	vRam := vram.NewGbVram()
-	iorg := iors.NewIORegisterSet()
-	oAm := oam.NewGbOam()
-	mBC := mbc.NewMbc1(64<<10, 16<<10)
-	mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
-	regSet := rs.NewRegisterSet()
-	arguments := args.NewArgumentSet(regSet)
-	inSet := NewInstructionSet(arguments)
+	mUnit, regSet, inSet := createModules()
+
 	var ins Instruction
 	t.Run("add_8bit", func(t *testing.T) {
 		var A *rs.Register8Bit = regSet.A

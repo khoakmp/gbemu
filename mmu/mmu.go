@@ -1,7 +1,7 @@
 package mmu
 
 import (
-	"github.com/khoakmp/gbemu/iors"
+	"github.com/khoakmp/gbemu/intr"
 	"github.com/khoakmp/gbemu/mmu/mbc"
 	"github.com/khoakmp/gbemu/mmu/oam"
 	"github.com/khoakmp/gbemu/mmu/vram"
@@ -13,29 +13,86 @@ type MMU interface {
 	Read16Bit(addr uint16) uint16
 	Write16Bit(addr, val uint16)
 }
-type ReadWrite interface {
+
+type RW8Bit interface {
 	Read8Bit(addr uint16) uint8
 	Write8Bit(addr uint16, val uint8)
-	Read16Bit(addr uint16) uint16
-	Write16Bit(addr, val uint16)
-}
-type GbMmu struct {
-	vram           vram.VRAM
-	iorg           *iors.IORegisterSet
-	oam            oam.OAM
-	mbc            mbc.MBC
-	wram           [8192]uint8
-	hram           [127]uint8
-	audioProcessor ReadWrite
-	timerSystem    ReadWrite
 }
 
-func NewGbMmu(vRam vram.VRAM, iorg *iors.IORegisterSet, OAM oam.OAM, MBC mbc.MBC) *GbMmu {
+type IoRegistersProxy struct {
+	apu        RW8Bit
+	timer      RW8Bit
+	joypad     RW8Bit
+	ppu        RW8Bit
+	interrupts *intr.Interrupts
+}
+
+func (m *IoRegistersProxy) Read8Bit(address uint16) uint8 {
+	if address < 0xff03 {
+		return m.joypad.Read8Bit(address)
+	}
+	if address >= 0xff04 && address < 0xff08 {
+		return m.timer.Read8Bit(address)
+	}
+	if address >= 0xff10 && address < 0xff40 {
+		return m.apu.Read8Bit(address)
+	}
+	if address >= 0xff40 && address < 0xff4c {
+		return m.ppu.Read8Bit(address)
+	}
+	if address == 0xff0f {
+		return m.interrupts.IF.Read8Bit()
+	}
+	if address == 0xffff {
+		return m.interrupts.IE.Read8Bit()
+	}
+	return 0
+}
+
+func (m *IoRegistersProxy) Write8Bit(address uint16, value uint8) {
+	if address < 0xff03 {
+		m.joypad.Write8Bit(address, value)
+		return
+	}
+	if address >= 0xff04 && address <= 0xff07 {
+		m.timer.Write8Bit(address, value)
+		return
+	}
+	if address >= 0xff10 && address <= 0xff3f {
+		m.apu.Write8Bit(address, value)
+		return
+	}
+	if address >= 0xff40 && address < 0xff4c {
+		m.ppu.Write8Bit(address, value)
+		return
+	}
+	if address == 0xff0f {
+		m.interrupts.IF.Write8Bit(value)
+		return
+	}
+	if address == 0xffff {
+		m.interrupts.IE.Write8Bit(value)
+	}
+}
+
+type GbMmu struct {
+	vram vram.VRAM
+	//iorg *iors.IORegisterSet
+	oam         oam.OAM
+	mbc         mbc.MBC
+	wram        [8192]uint8
+	hram        [127]uint8
+	ioRegisters RW8Bit
+}
+
+// TODO:
+func NewGbMmu(vRam vram.VRAM, ioRegisters RW8Bit,
+	OAM oam.OAM, MBC mbc.MBC) *GbMmu {
 	return &GbMmu{
-		vram: vRam,
-		iorg: iorg,
-		oam:  OAM,
-		mbc:  MBC,
+		vram:        vRam,
+		oam:         OAM,
+		mbc:         MBC,
+		ioRegisters: ioRegisters,
 	}
 }
 
@@ -66,13 +123,7 @@ func (m *GbMmu) Read8Bit(address uint16) uint8 {
 	}
 	if address < HRAM_START_ADDRESS {
 		// IO Registers
-		if address >= 0xff04 && address <= 0xff07 {
-			return m.timerSystem.Read8Bit(address)
-		}
-		if address >= 0xff10 && address <= 0xff3f {
-			return m.audioProcessor.Read8Bit(address)
-		}
-		return m.iorg.Read8Bit(address)
+		return m.ioRegisters.Read8Bit(address)
 	}
 	return m.hram[address-HRAM_START_ADDRESS]
 }
@@ -107,12 +158,12 @@ func (m *GbMmu) Read16Bit(address uint16) uint16 {
 	}
 	if address < HRAM_START_ADDRESS {
 		// IO Registers
-		if address >= 0xff04 && address <= 0xff07 {
-			return m.timerSystem.Read16Bit(address)
+		/* if address >= 0xff04 && address <= 0xff07 {
+			return m.timer.Read16Bit(address)
 		}
 		if address >= 0xff10 && address <= 0xff3f {
-			return m.audioProcessor.Read16Bit(address)
-		}
+			return m.apu.Read16Bit(address)
+		} */
 		return 0
 	}
 	addr := address - HRAM_START_ADDRESS
@@ -147,14 +198,7 @@ func (m *GbMmu) Write8Bit(address uint16, value uint8) {
 	}
 	if address < HRAM_START_ADDRESS {
 		// in IO Register memory mapping
-		if address >= 0xff04 && address <= 0xff07 {
-			m.timerSystem.Write8Bit(address, value)
-		}
-		if address >= 0xff10 && address <= 0xff3f {
-			m.audioProcessor.Write8Bit(address, value)
-			return
-		}
-		m.iorg.Write8Bit(address, value)
+		m.ioRegisters.Write8Bit(address, value)
 		return
 	}
 	m.hram[address-HRAM_START_ADDRESS] = value
@@ -194,13 +238,13 @@ func (m *GbMmu) Write16Bit(address, value uint16) {
 	}
 
 	if address < HRAM_START_ADDRESS {
-		if address >= 0xff04 && address <= 0xff07 {
-			m.timerSystem.Write16Bit(address, value)
+		/* if address >= 0xff04 && address <= 0xff07 {
+			m.timer.Write16Bit(address, value)
 		}
 		if address >= 0xff10 && address <= 0xff3f {
-			m.audioProcessor.Write16Bit(address, value)
+			m.apu.Write16Bit(address, value)
 			return
-		}
+		} */
 		// there is no write  16bit to IO register
 		return
 	}

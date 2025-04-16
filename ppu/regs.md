@@ -1,3 +1,4 @@
+### LCDC
 - **Bit 7**: LCD Display Enable
     - 0 = Display off (screen is blank).
     - 1 = Display on (screen renders).
@@ -24,3 +25,15 @@
 - **Bit 0**: BG/Window Display/Priority
     - 0 = BG and Window disabled (blank).
     - 1 = BG and Window enabled (rendered).
+
+### STAT Register Layout
+
+| Bit | Name | Description | Read/Write |
+| --- | --- | --- | --- |
+| 7 | Unused | Always reads as 1 | Read-only |
+| 6 | LYC=LY Interrupt Enable | Enables interrupt when LY = LYC | Read/Write |
+| 5 | Mode 2 Interrupt Enable | Enables interrupt during Mode 2 (OAM) | Read/Write |
+| 4 | Mode 1 Interrupt Enable | Enables interrupt during Mode 1 (V-Blank) | Read/Write |
+| 3 | Mode 0 Interrupt Enable | Enables interrupt during Mode 0 (H-Blank) | Read/Write |
+| 2 | LYC=LY Coincidence Flag | 1 if LY = LYC, 0 otherwise | Read-only |
+| 1-0 | Mode Flag | Current PPU mode (00, 01, 10, 11) | Read-only |

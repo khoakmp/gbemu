@@ -28,7 +28,7 @@ func TestMmu(t *testing.T) {
 	oAm := oam.NewGbOam()
 	vRam := vram.NewGbVram()
 	mBC := mbc.NewMbc1(64<<10, 16<<10)
-	iorg := iors.NewIORegisterSet()
+	iorg := iors.NewMockIORegisterSet()
 	mUnit := NewGbMmu(vRam, iorg, oAm, mBC)
 	t.Run("wram", func(t *testing.T) {
 		mUnit.Write8Bit(0xc000, 10)

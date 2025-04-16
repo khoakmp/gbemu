@@ -1,6 +1,8 @@
 package timer
 
-import "github.com/khoakmp/gbemu/iors"
+import (
+	"github.com/khoakmp/gbemu/intr"
+)
 
 var getBits [4]uint8
 var masks [4]uint16
@@ -15,7 +17,7 @@ type TimerState struct {
 
 type TimerSystem struct {
 	state *TimerState
-	iF    *iors.IF
+	iF    *intr.IF
 }
 
 /*
@@ -37,7 +39,7 @@ func init() {
 	masks[3] = 255
 }
 
-func NewTimerSystem(state *TimerState, iF *iors.IF) *TimerSystem {
+func NewTimerSystem(state *TimerState, iF *intr.IF) *TimerSystem {
 	return &TimerSystem{
 		state: state,
 		iF:    iF,

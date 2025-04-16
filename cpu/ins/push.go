@@ -11,7 +11,7 @@ type PushInstruction struct {
 	R args.Read16Bit
 }
 
-func pushWordOntoStack(regSet *rs.RegisterSet, mmUnit mmu.MMU, val uint16) {
+func PushWordOntoStack(regSet *rs.RegisterSet, mmUnit mmu.MMU, val uint16) {
 	newSpAddr := regSet.SP.Read16Bit() - 2
 	regSet.SP.Write16Bit(newSpAddr)
 	mmUnit.Write16Bit(newSpAddr, val)
@@ -19,7 +19,7 @@ func pushWordOntoStack(regSet *rs.RegisterSet, mmUnit mmu.MMU, val uint16) {
 
 func (p *PushInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	val := p.R.Read16Bit(regSet, mmUnit, param)
-	pushWordOntoStack(regSet, mmUnit, val)
+	PushWordOntoStack(regSet, mmUnit, val)
 	return 16
 }
 

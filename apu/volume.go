@@ -38,15 +38,11 @@ func (v *VolumeEnvelope) GetCurrentVolume() uint8 {
 }
 
 func (v *VolumeEnvelope) calculate() {
-	if v.volReg.DirectionAdd == 1 {
-		if v.volume == 15 {
-			return
-		}
+	if v.volReg.DirectionAdd == 1 && v.volume < 15 {
 		v.volume++
 		return
 	}
-	if v.volume == 0 {
-		return
+	if v.volume > 0 {
+		v.volume--
 	}
-	v.volume--
 }

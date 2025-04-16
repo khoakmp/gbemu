@@ -15,7 +15,7 @@ import (
 
 func createModules() (mUnit mmu.MMU, regSet *rs.RegisterSet, inSet *InstructionSet) {
 	vRam := vram.NewGbVram()
-	iorg := iors.NewIORegisterSet()
+	iorg := iors.NewMockIORegisterSet()
 	oAm := oam.NewGbOam()
 	mBC := mbc.NewMbc1(64<<10, 16<<10)
 	mUnit = mmu.NewGbMmu(vRam, iorg, oAm, mBC)

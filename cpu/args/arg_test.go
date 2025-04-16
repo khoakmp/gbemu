@@ -138,7 +138,7 @@ func TestArgumentSet(t *testing.T) {
 		regSet := rs.NewRegisterSet()
 		oAm := oam.NewGbOam()
 		vRam := vram.NewGbVram()
-		iorg := iors.NewIORegisterSet()
+		iorg := iors.NewMockIORegisterSet()
 		mBC := mbc.NewMbc1(64<<10, 16<<10)
 		mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
 		arguments := NewArgumentSet(regSet)

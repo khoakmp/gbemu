@@ -24,12 +24,16 @@ func (ie *IE) Write8Bit(value uint8) {
 	ie.data = value
 }
 
+func (ie *IE) Read8Bit() uint8 {
+	return ie.data
+}
+
 type IF struct{ data uint8 }
 
 func (iF *IF) Write8Bit(value uint8) {
 	iF.data = value
 }
-func (iF *IF) Get() uint8 {
+func (iF *IF) Read8Bit() uint8 {
 	return iF.data
 }
 func (iF *IF) SetJoypadInterrupt(value bool) {
@@ -67,4 +71,9 @@ func (iF *IF) SetVBlankInterrupt(value bool) {
 		return
 	}
 	iF.data &= ^uint8(1)
+}
+
+type Interrupts struct {
+	IE IE
+	IF IF
 }

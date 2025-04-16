@@ -1,6 +1,6 @@
 package iors
 
-type IORegisterSet struct {
+type MockIORegisterSet struct {
 	OBP0, OBP1, BGP uint8
 	SCX, SCY        uint8
 	WX, WY          uint8
@@ -13,8 +13,8 @@ type IORegisterSet struct {
 	Joypad *GbJoypad
 }
 
-func NewIORegisterSet() *IORegisterSet {
-	return &IORegisterSet{
+func NewMockIORegisterSet() *MockIORegisterSet {
+	return &MockIORegisterSet{
 		STAT:   &Stat{},
 		LCDC:   &Lcdc{},
 		IE:     &IE{},
@@ -22,7 +22,7 @@ func NewIORegisterSet() *IORegisterSet {
 		Joypad: &GbJoypad{},
 	}
 }
-func (r *IORegisterSet) Read8Bit(address uint16) uint8 {
+func (r *MockIORegisterSet) Read8Bit(address uint16) uint8 {
 	// TODO:
 	switch address {
 	case LCDC_ADDRESS:
@@ -53,7 +53,7 @@ func (r *IORegisterSet) Read8Bit(address uint16) uint8 {
 	return 0
 }
 
-func (r *IORegisterSet) Write8Bit(address uint16, value uint8) {
+func (r *MockIORegisterSet) Write8Bit(address uint16, value uint8) {
 	if address == 0xff0f {
 		r.IF.Write8Bit(value)
 	}
@@ -65,7 +65,7 @@ func (r *IORegisterSet) Write8Bit(address uint16, value uint8) {
 	}
 }
 
-func (r *IORegisterSet) Write8BitPPU(address uint16, value uint8) {
+func (r *MockIORegisterSet) Write8BitPPU(address uint16, value uint8) {
 	switch address {
 	case LCDC_ADDRESS:
 		r.LCDC.Write8Bit(value)
