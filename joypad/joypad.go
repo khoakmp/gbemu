@@ -40,14 +40,18 @@ type GbJoypad struct {
 	btnStates uint8
 }
 
-func (j *GbJoypad) Read8Bit() uint8 {
+func NewGbJoypad() *GbJoypad {
+	return &GbJoypad{}
+}
+
+func (j *GbJoypad) Read8Bit(address uint16) uint8 {
 	if j.mode == ModeDirect {
 		return ((j.btnStates >> 4) & 15) | uint8(1<<4) | uint8(192)
 	}
 	return (j.btnStates & 15) | uint8(1<<5) | uint8(192)
 }
 
-func (j *GbJoypad) Write8Bit(val uint8) {
+func (j *GbJoypad) Write8Bit(address uint16, val uint8) {
 	if val == 0x20 {
 		j.mode = ModeDirect
 		return

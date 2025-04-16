@@ -6,7 +6,7 @@ import (
 	"github.com/khoakmp/gbemu/mmu/vram"
 )
 
-type PPU struct {
+type GbPPU struct {
 	oam               oam.OAM
 	vram              vram.VRAM
 	state             *PpuState
@@ -18,9 +18,15 @@ type PPU struct {
 	triggerRenderChan chan<- struct{}
 }
 
-func NewPPU(oam oam.OAM, vram vram.VRAM, interrupts *intr.Interrupts, lineBuffers [][]uint8, triggerRender chan<- struct{}) *PPU {
+func (p *GbPPU) Read8Bit(address uint16) uint8 {
+	return p.state.Read8Bit(address)
+}
+func (p *GbPPU) Write8Bit(address uint16, value uint8) {
+	p.state.Write8Bit(address, value)
+}
+func NewGbPPU(oam oam.OAM, vram vram.VRAM, interrupts *intr.Interrupts, lineBuffers [][]uint8, triggerRender chan<- struct{}) *GbPPU {
 	state := &PpuState{}
-	return &PPU{
+	return &GbPPU{
 		oam:               oam,
 		vram:              vram,
 		state:             state,
@@ -37,7 +43,7 @@ func initPaletteConv(palette uint8, conv []uint8) {
 	conv[3] = (palette & 192) >> 6 // 128 + 64
 }
 
-func (p *PPU) updateLine(lineBuffer []uint8) {
+func (p *GbPPU) updateLine(lineBuffer []uint8) {
 	lcdc := p.state.LCDC
 	rewriteColors := func(rootColors, newColors []uint8) {
 		for i := 0; i < len(rootColors); i++ {
@@ -72,7 +78,7 @@ SPRITE:
 }
 
 // only call if window layer is enable
-func (p *PPU) recalWindow() (lineColors [160]uint8) {
+func (p *GbPPU) recalWindow() (lineColors [160]uint8) {
 	if p.state.WY > p.state.LY {
 		return
 	}
@@ -93,7 +99,7 @@ func (p *PPU) recalWindow() (lineColors [160]uint8) {
 	return
 }
 
-func (p *PPU) recalBackground() (lineColors [160]uint8) {
+func (p *GbPPU) recalBackground() (lineColors [160]uint8) {
 	mapSelector := p.state.LCDC.GetBackgroundTileMap()
 	lineColors = p.vram.GetLineColors(
 		mapSelector,
@@ -149,7 +155,7 @@ CAL:
 	return 1
 }
 
-func (p *PPU) recalSprites() (lineColors [160]uint8) {
+func (p *GbPPU) recalSprites() (lineColors [160]uint8) {
 	var cnt uint8 = 0
 	var obpConvs [2][4]uint8
 
@@ -171,7 +177,7 @@ func (p *PPU) recalSprites() (lineColors [160]uint8) {
 	return
 }
 
-func (p *PPU) Update(cycles uint16) {
+func (p *GbPPU) Update(cycles uint16) {
 	p.cycleCnt += cycles
 
 	switch p.mode {
@@ -186,7 +192,7 @@ func (p *PPU) Update(cycles uint16) {
 	}
 }
 
-func (p *PPU) triggerLyUpdate(ly uint8) {
+func (p *GbPPU) triggerLyUpdate(ly uint8) {
 	p.state.LY = ly
 	p.state.STAT.SetLyEqualLyc(p.state.LYC == ly)
 	if p.intr.IE.GetSTATInterruptEnable() && p.state.STAT.GetEnableInterruptLyEqualLyc() {
@@ -194,7 +200,7 @@ func (p *PPU) triggerLyUpdate(ly uint8) {
 	}
 }
 
-func (p *PPU) triggerModeUpdate(mode uint8) {
+func (p *GbPPU) triggerModeUpdate(mode uint8) {
 	p.state.STAT.SetMode(mode)
 	if mode == 0 {
 		if p.intr.IE.GetVBlankInterruptEnable() {
@@ -207,7 +213,7 @@ func (p *PPU) triggerModeUpdate(mode uint8) {
 	}
 }
 
-func (p *PPU) calMode0() {
+func (p *GbPPU) calMode0() {
 	if p.cycleCnt < 204 {
 		return
 	}
@@ -228,7 +234,7 @@ func (p *PPU) calMode0() {
 }
 
 // 2->3->0 -> (2 || 1) , 1->2
-func (p *PPU) calMode1() {
+func (p *GbPPU) calMode1() {
 	if p.cycleCnt < 456 {
 		return
 	}
@@ -244,7 +250,7 @@ func (p *PPU) calMode1() {
 	p.triggerModeUpdate(2)
 }
 
-func (p *PPU) calMode2() {
+func (p *GbPPU) calMode2() {
 	if p.cycleCnt < 80 {
 		return
 	}
@@ -252,7 +258,7 @@ func (p *PPU) calMode2() {
 	p.triggerModeUpdate(3)
 }
 
-func (p *PPU) calMode3() {
+func (p *GbPPU) calMode3() {
 	if p.cycleCnt < 172 {
 		return
 	}

@@ -17,7 +17,7 @@ func TestTimer(t *testing.T) {
 	}
 
 	iF := &intr.IF{}
-	ti := NewTimerSystem(timerState, iF)
+	ti := newTimerSystem(timerState, iF)
 	ti.Update(24)
 
 	assert.Equal(t, uint16(39), timerState.DIV)

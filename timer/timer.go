@@ -39,7 +39,12 @@ func init() {
 	masks[3] = 255
 }
 
-func NewTimerSystem(state *TimerState, iF *intr.IF) *TimerSystem {
+func CreateTimer(iF *intr.IF) *TimerSystem {
+	state := &TimerState{}
+	return newTimerSystem(state, iF)
+}
+
+func newTimerSystem(state *TimerState, iF *intr.IF) *TimerSystem {
 	return &TimerSystem{
 		state: state,
 		iF:    iF,

@@ -84,6 +84,7 @@ func example() {
 			if win.Pressed(pixelgl.KeyDown) {
 				wy--
 			}
+
 			if win.JustPressed(pixelgl.KeySpace) {
 				// Save canvas to PNG
 
@@ -111,7 +112,7 @@ func example() {
 
 type Lcd struct {
 	buffers     [][]uint8
-	triggerChan <-chan struct{}
+	triggerChan chan struct{}
 }
 
 func NewLcd() *Lcd {
@@ -122,12 +123,12 @@ func NewLcd() *Lcd {
 
 	l := &Lcd{
 		buffers:     buffers,
-		triggerChan: make(<-chan struct{}),
+		triggerChan: make(chan struct{}),
 	}
 	return l
 }
 
-func (l *Lcd) TriggerChan() <-chan struct{} {
+func (l *Lcd) TriggerChan() chan<- struct{} {
 	return l.triggerChan
 }
 

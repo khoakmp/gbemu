@@ -1,14 +1,19 @@
 package apu
 
-type AudioProcessor struct {
+type GbApu struct {
 	channel1, channel2 *SquareChannel
 	channel3           *SampleChannel
 	channel4           *NoiseChannel
 }
 
-func NewAudioProcessor(channelState1, channelState2 *SquareChannelState,
-	channelState3 *SampleChannelState, channelState4 *NoiseChannelState) *AudioProcessor {
-	return &AudioProcessor{
+func NewGbApu() *GbApu {
+
+	channelState1 := &SquareChannelState{}
+	channelState2 := &SquareChannelState{}
+	channelState3 := &SampleChannelState{}
+	channelState4 := &NoiseChannelState{}
+
+	return &GbApu{
 		channel1: NewSquareChannel(channelState1, true),
 		channel2: NewSquareChannel(channelState2, false),
 		channel3: NewSampleChannle(channelState3),
@@ -16,14 +21,14 @@ func NewAudioProcessor(channelState1, channelState2 *SquareChannelState,
 	}
 }
 
-func (a *AudioProcessor) Update(deltaCycles uint8) {
+func (a *GbApu) Update(deltaCycles uint8) {
 	a.channel1.Update(deltaCycles)
 	a.channel2.Update(deltaCycles)
 	a.channel3.Update(deltaCycles)
 	a.channel4.Update(deltaCycles)
 }
 
-func (a *AudioProcessor) Write8Bit(address uint16, value uint8) {
+func (a *GbApu) Write8Bit(address uint16, value uint8) {
 	// check wave RAM
 	if address >= 0xff30 {
 		a.channel3.state.Samples[address-0xff30] = value
@@ -85,7 +90,7 @@ func (a *AudioProcessor) Write8Bit(address uint16, value uint8) {
 	}
 }
 
-func (a *AudioProcessor) Read8Bit(address uint16) uint8 {
+func (a *GbApu) Read8Bit(address uint16) uint8 {
 	if address >= 0xff30 {
 		return a.channel3.state.Samples[address-0xff30]
 	}
@@ -134,11 +139,11 @@ func (a *AudioProcessor) Read8Bit(address uint16) uint8 {
 	return 0
 }
 
-func (a *AudioProcessor) Write16Bit(address, value uint16) {
+func (a *GbApu) Write16Bit(address, value uint16) {
 	a.Write8Bit(address, uint8(value&255))
 	a.Write8Bit(address+1, uint8(value>>8))
 }
 
-func (a *AudioProcessor) Read16Bit(address uint16) uint16 {
+func (a *GbApu) Read16Bit(address uint16) uint16 {
 	return uint16(a.Read8Bit(address+1))<<8 | uint16(a.Read8Bit(address))
 }

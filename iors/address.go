@@ -2,7 +2,11 @@ package iors
 
 // Joypad
 const (
-	JOYPAD_ADDRESS         = 0xff00
+	JOYPAD_ADDRESS = 0xff00
+)
+
+// Serial
+const (
 	SERIAL_DATA_ADDRESS    = 0xff01
 	SERIAL_CONTROL_ADDRESS = 0xff02
 )

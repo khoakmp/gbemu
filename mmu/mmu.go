@@ -1,7 +1,6 @@
 package mmu
 
 import (
-	"github.com/khoakmp/gbemu/intr"
 	"github.com/khoakmp/gbemu/mmu/mbc"
 	"github.com/khoakmp/gbemu/mmu/oam"
 	"github.com/khoakmp/gbemu/mmu/vram"
@@ -19,62 +18,6 @@ type RW8Bit interface {
 	Write8Bit(addr uint16, val uint8)
 }
 
-type IoRegistersProxy struct {
-	apu        RW8Bit
-	timer      RW8Bit
-	joypad     RW8Bit
-	ppu        RW8Bit
-	interrupts *intr.Interrupts
-}
-
-func (m *IoRegistersProxy) Read8Bit(address uint16) uint8 {
-	if address < 0xff03 {
-		return m.joypad.Read8Bit(address)
-	}
-	if address >= 0xff04 && address < 0xff08 {
-		return m.timer.Read8Bit(address)
-	}
-	if address >= 0xff10 && address < 0xff40 {
-		return m.apu.Read8Bit(address)
-	}
-	if address >= 0xff40 && address < 0xff4c {
-		return m.ppu.Read8Bit(address)
-	}
-	if address == 0xff0f {
-		return m.interrupts.IF.Read8Bit()
-	}
-	if address == 0xffff {
-		return m.interrupts.IE.Read8Bit()
-	}
-	return 0
-}
-
-func (m *IoRegistersProxy) Write8Bit(address uint16, value uint8) {
-	if address < 0xff03 {
-		m.joypad.Write8Bit(address, value)
-		return
-	}
-	if address >= 0xff04 && address <= 0xff07 {
-		m.timer.Write8Bit(address, value)
-		return
-	}
-	if address >= 0xff10 && address <= 0xff3f {
-		m.apu.Write8Bit(address, value)
-		return
-	}
-	if address >= 0xff40 && address < 0xff4c {
-		m.ppu.Write8Bit(address, value)
-		return
-	}
-	if address == 0xff0f {
-		m.interrupts.IF.Write8Bit(value)
-		return
-	}
-	if address == 0xffff {
-		m.interrupts.IE.Write8Bit(value)
-	}
-}
-
 type GbMmu struct {
 	vram vram.VRAM
 	//iorg *iors.IORegisterSet
@@ -86,13 +29,13 @@ type GbMmu struct {
 }
 
 // TODO:
-func NewGbMmu(vRam vram.VRAM, ioRegisters RW8Bit,
+func NewGbMmu(vRam vram.VRAM, ioRegistersProxy RW8Bit,
 	OAM oam.OAM, MBC mbc.MBC) *GbMmu {
 	return &GbMmu{
 		vram:        vRam,
 		oam:         OAM,
 		mbc:         MBC,
-		ioRegisters: ioRegisters,
+		ioRegisters: ioRegistersProxy,
 	}
 }
 

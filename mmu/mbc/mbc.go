@@ -1,5 +1,7 @@
 package mbc
 
+import "log"
+
 // directly dung?
 type MBC interface {
 	Read8Bit(address uint16) uint8
@@ -13,3 +15,12 @@ const (
 	EXT_RAM_START_ADDRESS = 0xa000 // end at 0xbfff
 	EXT_RAM_END_ADDRESS   = 0xbfff
 )
+
+func CreateMBC(mbcType int, romBuffer []uint8, ramSize uint8) MBC {
+	switch mbcType {
+	case 0x13:
+		return NewMbc3x13(ramSize, romBuffer)
+	}
+	log.Fatal()
+	return nil
+}

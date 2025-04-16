@@ -158,6 +158,7 @@ func (s *Stat) GetMode() uint8 {
 func (s *Stat) SetMode(mode uint8) {
 	s.PpuMode = mode
 }
+
 func (s *Stat) Read8Bit() uint8 {
 	var ans uint8
 	if s.EnableInterruptLyEqualLyc {

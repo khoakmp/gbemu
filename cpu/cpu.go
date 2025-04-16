@@ -1,6 +1,7 @@
 package cpu
 
 import (
+	"github.com/khoakmp/gbemu/cpu/args"
 	"github.com/khoakmp/gbemu/cpu/ins"
 	"github.com/khoakmp/gbemu/mmu"
 	"github.com/khoakmp/gbemu/rs"
@@ -11,6 +12,17 @@ type GbCPU struct {
 	regSet           *rs.RegisterSet
 	instructionSet   *ins.InstructionSet
 	cbInstructionSet *ins.CbInstructionSet
+}
+
+func NewGbCpu(mmu mmu.MMU, regSet *rs.RegisterSet) *GbCPU {
+	arguments := args.NewArgumentSet(regSet)
+
+	return &GbCPU{
+		memUnit:          mmu,
+		regSet:           regSet,
+		instructionSet:   ins.NewInstructionSet(arguments),
+		cbInstructionSet: ins.NewCbInstructionSet(arguments),
+	}
 }
 
 // Not advance PC register
