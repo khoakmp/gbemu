@@ -31,6 +31,7 @@ type Gameboy struct {
 	timer      *timer.TimerSystem
 	interrupts *intr.Interrupts
 	ppu        *ppu.GbPPU
+	lcd        *lcd.GbLcd
 }
 
 // call for timer + audio + ppu dung
@@ -147,18 +148,20 @@ func NewGameboy(gbfile string) *Gameboy {
 	}
 	header := createHeader(romBuffer)
 	interrupts := intr.Interrupts{}
+	joypad := joypad.NewGbJoypad(&interrupts.IF)
 	regSet := rs.NewRegisterSet()
 
-	lcd := lcd.NewLcd()
+	lcd := lcd.NewLcd(joypad.SetButtonState)
 	mbc := mbc.CreateMBC(header.MbcType, romBuffer, uint8(header.ExtRamSize))
 
 	oam := oam.NewGbOam()
 	vram := vram.NewGbVram()
 
 	apu := apu.NewGbApu()
-	ppu := ppu.NewGbPPU(oam, vram, &interrupts, lcd.Buffer(), lcd.TriggerChan())
+
+	ppu := ppu.NewGbPPU(oam, vram, &interrupts, lcd.Buffer(), lcd.Draw)
+
 	timer := timer.CreateTimer(&interrupts.IF)
-	joypad := joypad.NewGbJoypad()
 
 	iorgs := IoRegistersProxy{
 		apu:        apu,
@@ -181,20 +184,21 @@ func NewGameboy(gbfile string) *Gameboy {
 	return g
 }
 
-func (g *Gameboy) run() uint8 {
+func (g *Gameboy) runOneInstruction() uint8 {
 	val := g.interrupts.IE.Read8Bit() & g.interrupts.IF.Read8Bit()
 	if !g.regSet.IME || val == 0 {
 		goto RUN
 	}
-	// check both for STOP + HALT dung do
 	for i := 0; i < 5; i++ {
 		if val&(1<<i) == 0 {
 			continue
 		}
-		address := interruptHandlerAddrs[i]
-		ins.PushWordOntoStack(g.regSet, g.memUnit, address)
+
+		ins.PushWordOntoStack(g.regSet, g.memUnit, g.regSet.PC.Read16Bit())
+		g.regSet.IME = false
 		g.regSet.Stopping = false
 		g.regSet.Halting = false
+		g.regSet.PC.Write16Bit(interruptHandlerAddrs[i])
 		break
 	}
 RUN:
@@ -216,6 +220,8 @@ RUN:
 	g.ppu.Update(uint16(cycles))
 	g.apu.Update(cycles)
 	g.timer.Update(uint16(cycles))
+
+	g.regSet.PC.Write16Bit(g.regSet.PC.Read16Bit() + uint16(instruction.GetLength()))
 	instruction.Run(g.regSet, g.memUnit, param)
 
 	if delayEnableIntr {
@@ -228,17 +234,23 @@ RUN:
 func (g *Gameboy) frame() {
 	var cycles uint32 = 0
 	for cycles < MaxCyclesPerFrame {
-		cycles += uint32(g.run())
+		cycles += uint32(g.runOneInstruction())
 	}
 }
 
 func (g *Gameboy) Run() {
-	for {
-		ts := time.Now()
-		g.frame()
-		dur := time.Since(ts)
-		if dur < FrameDuration {
+	g.regSet.PC.Write16Bit(0x0100)
+	g.lcd.Run(func() {
+		for !g.lcd.Exited() {
+			ts := time.Now()
+			g.frame()
+
+			dur := time.Since(ts)
+			if dur >= FrameDuration {
+				continue
+			}
+
 			time.Sleep(FrameDuration - dur)
 		}
-	}
+	})
 }

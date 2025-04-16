@@ -3,11 +3,13 @@ package lcd
 import (
 	"image"
 	"image/color"
+	"log"
 	"math/rand"
 	"time"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/khoakmp/gbemu/joypad"
 	"golang.org/x/image/colornames"
 )
 
@@ -110,64 +112,86 @@ func example() {
 	})
 }
 
-type Lcd struct {
-	buffers     [][]uint8
-	triggerChan chan struct{}
+type GbLcd struct {
+	buffers        [][]uint8
+	sprite         *pixel.Sprite
+	win            *pixelgl.Window
+	img            *image.RGBA
+	canvas         *pixelgl.Canvas
+	setButtonState func(button joypad.ButtonCode, press bool)
+	exited         bool
 }
 
-func NewLcd() *Lcd {
+func NewLcd(setButtonState func(button joypad.ButtonCode, press bool)) *GbLcd {
 	buffers := make([][]uint8, ScreenHeight)
 	for i := 0; i < ScreenHeight; i++ {
 		buffers[i] = make([]uint8, ScreenWidth)
 	}
-
-	l := &Lcd{
-		buffers:     buffers,
-		triggerChan: make(chan struct{}),
+	win, err := pixelgl.NewWindow(pixelgl.WindowConfig{
+		Title:  "Game Boy Emulator",
+		Bounds: pixel.R(0, 0, ScreenWidth<<1, ScreenHeight<<1),
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	l := &GbLcd{
+		buffers: buffers,
+		sprite:  &pixel.Sprite{},
+		win:     win,
+		img:     &image.RGBA{},
+		canvas:  pixelgl.NewCanvas(pixel.R(0, 0, ScreenWidth, ScreenHeight)),
+	}
+
 	return l
 }
 
-func (l *Lcd) TriggerChan() chan<- struct{} {
-	return l.triggerChan
-}
-
-func (l *Lcd) Buffer() [][]uint8 {
+func (l *GbLcd) Buffer() [][]uint8 {
 	return l.buffers
 }
 
-func (l *Lcd) Run() {
-	pixelgl.Run(func() {
-		win, err := pixelgl.NewWindow(pixelgl.WindowConfig{
-			Title:  "Game Boy Emulator",
-			Bounds: pixel.R(0, 0, ScreenWidth<<1, ScreenHeight<<1),
-		})
-		if err != nil {
-			println(err)
-			return
+func (l *GbLcd) Run(fn func()) {
+	pixelgl.Run(fn)
+}
+
+func (l *GbLcd) Exited() bool {
+	return l.exited
+}
+
+func (l *GbLcd) Draw() {
+	if l.win.Closed() {
+		l.exited = true
+		return
+	}
+	for y := 0; y < ScreenHeight; y++ {
+		for x := 0; x < ScreenWidth; x++ {
+			l.img.Set(x, y, gbPalette[l.buffers[y][x]])
 		}
-		defer win.Destroy()
-		canvas := pixelgl.NewCanvas(pixel.R(0, 0, ScreenWidth, ScreenHeight))
-		var img *image.RGBA = image.NewRGBA(image.Rect(0, 0, ScreenWidth, ScreenHeight))
-		var pic *pixel.PictureData = &pixel.PictureData{}
-		var sprite *pixel.Sprite = pixel.NewSprite(pic, pic.Bounds())
-		for {
-			<-l.triggerChan
-			if win.Closed() {
-				break
-			}
-			for y := 0; y < ScreenHeight; y++ {
-				for x := 0; x < ScreenWidth; x++ {
-					img.Set(x, y, gbPalette[l.buffers[y][x]])
-				}
-			}
-			pic = pixel.PictureDataFromImage(img)
-			win.Clear(colornames.Black)
-			canvas.Clear(gbPalette[0])
-			sprite.Set(pic, pic.Bounds())
-			sprite.Draw(canvas, pixel.IM.Moved(pixel.V(0, 0)))
-			canvas.Draw(win, pixel.IM.Scaled(pixel.ZV, 2).Moved(win.Bounds().Center()))
-			win.Update()
-		}
-	})
+	}
+	if l.win.Pressed(pixelgl.KeyZ) {
+		l.setButtonState(joypad.ButtonA, true)
+	}
+	if l.win.Pressed(pixelgl.KeyX) {
+		l.setButtonState(joypad.ButtonB, true)
+	}
+	if l.win.Pressed(pixelgl.KeyUp) {
+		l.setButtonState(joypad.ButtonUp, true)
+	}
+	if l.win.Pressed(pixelgl.KeyDown) {
+		l.setButtonState(joypad.ButtonDown, true)
+	}
+	if l.win.Pressed(pixelgl.KeyRight) {
+		l.setButtonState(joypad.ButtonRight, true)
+	}
+	if l.win.Pressed(pixelgl.KeyLeft) {
+		l.setButtonState(joypad.ButtonLeft, true)
+	}
+
+	pic := pixel.PictureDataFromImage(l.img)
+	l.win.Clear(colornames.Black)
+	l.canvas.Clear(gbPalette[0])
+	l.sprite.Set(pic, pic.Bounds())
+	l.sprite.Draw(l.canvas, pixel.IM.Moved(pixel.V(0, 0)))
+	l.canvas.Draw(l.win, pixel.IM.Scaled(pixel.ZV, 2).Moved(l.win.Bounds().Center()))
+	l.win.Update()
 }

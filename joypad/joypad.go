@@ -1,5 +1,7 @@
 package joypad
 
+import "github.com/khoakmp/gbemu/intr"
+
 /*
 D-pad selected (0x20 written):
 
@@ -15,16 +17,17 @@ Action buttons selected (0x10 written):
 	Bit 2: Select
 	Bit 3: Start
 */
+type ButtonCode uint8
 
 const (
-	ButtonA      uint8 = 0
-	ButtonB      uint8 = 1
-	ButtonSelect uint8 = 2
-	ButtonStart  uint8 = 3
-	ButtonRight  uint8 = 4
-	ButtonLeft   uint8 = 5
-	ButtonUp     uint8 = 6
-	ButtonDown   uint8 = 7
+	ButtonA      ButtonCode = 0
+	ButtonB      ButtonCode = 1
+	ButtonSelect ButtonCode = 2
+	ButtonStart  ButtonCode = 3
+	ButtonRight  ButtonCode = 4
+	ButtonLeft   ButtonCode = 5
+	ButtonUp     ButtonCode = 6
+	ButtonDown   ButtonCode = 7
 )
 
 const (
@@ -38,10 +41,15 @@ const (
 type GbJoypad struct {
 	mode      uint8
 	btnStates uint8
+	iF        *intr.IF
 }
 
-func NewGbJoypad() *GbJoypad {
-	return &GbJoypad{}
+func NewGbJoypad(iF *intr.IF) *GbJoypad {
+
+	return &GbJoypad{
+		btnStates: 255,
+		iF:        iF,
+	}
 }
 
 func (j *GbJoypad) Read8Bit(address uint16) uint8 {
@@ -59,10 +67,17 @@ func (j *GbJoypad) Write8Bit(address uint16, val uint8) {
 	j.mode = ModeAction
 }
 
-func (j *GbJoypad) SetStateButton(btn uint8, state uint8) {
-	if state == 0 {
-		j.btnStates &= ^uint8(1 << btn)
+func (j *GbJoypad) SetButtonState(button ButtonCode, press bool) {
+	if press {
+		if j.btnStates&(1<<button) == 0 {
+			return
+		}
+		j.btnStates &= ^uint8(1 << button)
 		return
 	}
-	j.btnStates |= uint8(1 << btn)
+
+	if j.btnStates&(1<<button) == 1 {
+		return
+	}
+	j.btnStates |= uint8(1 << button)
 }

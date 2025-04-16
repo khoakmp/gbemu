@@ -1,11 +1,15 @@
 package ins
 
 import (
+	"log"
+
 	"github.com/khoakmp/gbemu/cpu/args"
 )
 
 type InstructionSet struct {
 	instructions [256]Instruction
+	Cnt          int
+	CallCnt      int
 }
 
 func (s *InstructionSet) GetInstruction(opcode uint8) Instruction {
@@ -13,47 +17,57 @@ func (s *InstructionSet) GetInstruction(opcode uint8) Instruction {
 }
 
 func NewInstructionSet(arguments *args.ArgumentSet) *InstructionSet {
-	instructions := &InstructionSet{}
+	inSet := &InstructionSet{
+		Cnt: 0,
+	}
 	// 1. Load and Store Instructions
-	instructions.initLds(arguments)
+	inSet.initLds(arguments)
 	// TODO : lack LDH to store into HRAM
 
 	// 2. Control Flow instructions
-	instructions.initJps(arguments)
-	instructions.initJrs(arguments)
-	instructions.initRets()
-	instructions.initRsts()
+	inSet.initJps(arguments)
+	inSet.initJrs(arguments)
+	inSet.initRets()
+	inSet.initRsts()
 
-	instructions.initCalls(arguments)
+	inSet.initCalls(arguments)
 
 	// 3. Stack Instructions
-	instructions.initPushs(arguments)
-	instructions.initPops(arguments)
+	inSet.initPushs(arguments)
+	inSet.initPops(arguments)
 
 	// 4. Arithmetic Instructions
-	instructions.initAdds(arguments)
-	instructions.initAdcs(arguments)
-	instructions.initIncs(arguments)
-	instructions.initDecs(arguments)
-	instructions.initSubs(arguments)
-	instructions.initSbcs(arguments)
-	instructions.initCps(arguments)
+	inSet.initAdds(arguments)
+	inSet.initAdcs(arguments)
+	inSet.initIncs(arguments)
+	inSet.initDecs(arguments)
+	inSet.initSubs(arguments)
+	inSet.initSbcs(arguments)
+	inSet.initCps(arguments)
 	// TODO: DAA
 	// 5. Logical Instructions
-	instructions.initLogicals(arguments)
-	instructions.initCFs()
+	inSet.initLogicals(arguments)
+	inSet.initCFs()
 
 	// cpu control
-	instructions.initControls()
-	return instructions
+	inSet.initControls()
+	return inSet
 }
 
 func (s *InstructionSet) add(i Instruction) {
+	s.CallCnt++
+	//println("add ", i.Opcode())
+	if s.instructions[i.Opcode()] != nil {
+		println("error")
+		log.Fatal("non_cb_prefix: opcode ", i.Opcode(), "already existed")
+	}
+	s.Cnt++
 	s.instructions[i.Opcode()] = i
 }
 
 type CbInstructionSet struct {
 	instructions [256]Instruction
+	cnt          int
 }
 
 func (s *CbInstructionSet) GetInstruction(opcode uint8) Instruction {
@@ -61,7 +75,12 @@ func (s *CbInstructionSet) GetInstruction(opcode uint8) Instruction {
 }
 
 func (s *CbInstructionSet) add(i Instruction) {
+
+	if s.instructions[i.Opcode()] != nil {
+		log.Fatal("cb_prefix opcode", i.Opcode(), "already existed")
+	}
 	s.instructions[i.Opcode()] = i
+	s.cnt++
 }
 
 func NewCbInstructionSet(arguments *args.ArgumentSet) *CbInstructionSet {

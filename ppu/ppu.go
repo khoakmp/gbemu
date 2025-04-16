@@ -7,33 +7,37 @@ import (
 )
 
 type GbPPU struct {
-	oam               oam.OAM
-	vram              vram.VRAM
-	state             *PpuState
-	intr              *intr.Interrupts
-	cycleCnt          uint16
-	mode              uint8 // init at mode 2
-	ly                uint8
-	lineBuffers       [][]uint8
-	triggerRenderChan chan<- struct{}
+	oam         oam.OAM
+	vram        vram.VRAM
+	state       *PpuState
+	intr        *intr.Interrupts
+	cycleCnt    uint16
+	mode        uint8 // init at mode 2
+	ly          uint8
+	lineBuffers [][]uint8
+	draw        func()
+	//triggerRenderChan chan<- struct{}
 }
 
 func (p *GbPPU) Read8Bit(address uint16) uint8 {
 	return p.state.Read8Bit(address)
 }
+
 func (p *GbPPU) Write8Bit(address uint16, value uint8) {
 	p.state.Write8Bit(address, value)
 }
-func NewGbPPU(oam oam.OAM, vram vram.VRAM, interrupts *intr.Interrupts, lineBuffers [][]uint8, triggerRender chan<- struct{}) *GbPPU {
+
+func NewGbPPU(oam oam.OAM, vram vram.VRAM, interrupts *intr.Interrupts, lineBuffers [][]uint8, drawFn func()) *GbPPU {
 	state := &PpuState{}
 	return &GbPPU{
-		oam:               oam,
-		vram:              vram,
-		state:             state,
-		intr:              interrupts,
-		lineBuffers:       lineBuffers,
-		mode:              2,
-		triggerRenderChan: triggerRender,
+		oam:         oam,
+		vram:        vram,
+		state:       state,
+		intr:        interrupts,
+		lineBuffers: lineBuffers,
+		mode:        2,
+		draw:        drawFn,
+		//triggerRenderChan: triggerRender,
 	}
 }
 func initPaletteConv(palette uint8, conv []uint8) {
@@ -226,8 +230,9 @@ func (p *GbPPU) calMode0() {
 		p.triggerModeUpdate(2)
 		return
 	}
-
-	p.triggerRenderChan <- struct{}{}
+	// TODO: call draw
+	//p.triggerRenderChan <- struct{}{}
+	p.draw()
 
 	p.mode = 1
 	p.triggerModeUpdate(1)

@@ -222,8 +222,8 @@ func (cf *CFInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	return cf.Cycles
 }
 
-func (s *InstructionSet) newCFInstruction(opCode, length, cycles uint8) {
-	s.instructions[opCode] = &CFInstruction{
+func newCFInstruction(opCode, length, cycles uint8) *CFInstruction {
+	return &CFInstruction{
 		InstructionBase: InstructionBase{
 			OpCode: opCode,
 			Length: length,
@@ -233,6 +233,6 @@ func (s *InstructionSet) newCFInstruction(opCode, length, cycles uint8) {
 }
 
 func (s *InstructionSet) initCFs() {
-	s.newCFInstruction(0x37, 1, 4)
-	s.newCFInstruction(0x3f, 1, 4)
+	s.add(newCFInstruction(0x37, 1, 4))
+	s.add(newCFInstruction(0x3f, 1, 4))
 }
