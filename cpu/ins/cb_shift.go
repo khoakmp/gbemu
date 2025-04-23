@@ -22,14 +22,14 @@ func NewSlaInstruction(opCode, length, cycles uint8, R args.RW8Bit) *SlaInstruct
 	}
 }
 func (s *SlaInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := s.R.Read8Bit(nil, nil, 0)
+	val := s.R.Read8Bit(nil, mmUnit, 0)
 	bit7 := val >> 7
 	val <<= 1
 	regSet.F.SetFlag(rs.FlagC, bit7 == 1)
 	regSet.F.SetFlag(rs.FlagH, false)
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
-	s.R.Write8Bit(nil, nil, 0, val)
+	s.R.Write8Bit(nil, mmUnit, 0, val)
 	return s.Cycles
 }
 
@@ -50,7 +50,7 @@ func NewSraInstruction(opCode, length, cycles uint8, R args.RW8Bit) *SraInstruct
 }
 
 func (s *SraInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := s.R.Read8Bit(nil, nil, 0)
+	val := s.R.Read8Bit(nil, mmUnit, 0)
 	bit0 := val & 1
 	bit7 := val & 128
 	val = (val >> 1)
@@ -61,7 +61,7 @@ func (s *SraInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	regSet.F.SetFlag(rs.FlagH, false)
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
-	s.R.Write8Bit(nil, nil, 0, val)
+	s.R.Write8Bit(nil, mmUnit, 0, val)
 	return s.Cycles
 }
 
@@ -82,14 +82,14 @@ func NewSrlInstruction(opCode, length, cycles uint8, R args.RW8Bit) *SrlInstruct
 }
 
 func (s *SrlInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := s.R.Read8Bit(nil, nil, 0)
+	val := s.R.Read8Bit(nil, mmUnit, 0)
 	bit0 := val & 1
 	val >>= 1
 	regSet.F.SetFlag(rs.FlagC, bit0 == 1)
 	regSet.F.SetFlag(rs.FlagH, false)
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
-	s.R.Write8Bit(nil, nil, 0, val)
+	s.R.Write8Bit(nil, mmUnit, 0, val)
 	return s.Cycles
 }
 func (s *CbInstructionSet) initShifts(as *args.ArgumentSet) {

@@ -19,26 +19,26 @@ func (jr *JrInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	switch jr.OpCode {
 	case 0x20:
 		if regSet.F.GetFlag(rs.FlagZ) {
-			return 8
+			return jr.Cycles
 		}
 	case 0x28:
 		if !regSet.F.GetFlag(rs.FlagZ) {
-			return 8
+			return jr.Cycles
 		}
 	case 0x30:
 		if regSet.F.GetFlag(rs.FlagC) {
-			return 8
+			return jr.Cycles
 		}
 	case 0x38:
 		if !regSet.F.GetFlag(rs.FlagC) {
-			return 8
+			return jr.Cycles
 		}
 	}
 JUMP:
 	curPc := regSet.PC.Read16Bit()
 	val := curPc + jr.R.Read16Bit(regSet, mmUnit, param)
 	regSet.PC.Write16Bit(val)
-
+	// it actually takes 12 cycles when jump
 	return 12
 }
 
@@ -79,9 +79,9 @@ JR cc, n (Conditional Relative Jump)
 func (s *InstructionSet) initJrs(as *args.ArgumentSet) {
 	s.add(newJrInstruction(0x18, 2, 12, as.Num16bitFrom8BitSigned))
 
-	s.add(newJrInstruction(0x20, 2, 12, as.Num16bitFrom8BitSigned))
-	s.add(newJrInstruction(0x28, 2, 12, as.Num16bitFrom8BitSigned))
-	s.add(newJrInstruction(0x30, 2, 12, as.Num16bitFrom8BitSigned))
-	s.add(newJrInstruction(0x38, 2, 12, as.Num16bitFrom8BitSigned))
+	s.add(newJrInstruction(0x20, 2, 8, as.Num16bitFrom8BitSigned))
+	s.add(newJrInstruction(0x28, 2, 8, as.Num16bitFrom8BitSigned))
+	s.add(newJrInstruction(0x30, 2, 8, as.Num16bitFrom8BitSigned))
+	s.add(newJrInstruction(0x38, 2, 8, as.Num16bitFrom8BitSigned))
 
 }

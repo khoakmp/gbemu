@@ -3,6 +3,7 @@ package mmu
 import (
 	"testing"
 
+	"github.com/khoakmp/gbemu/intr"
 	"github.com/khoakmp/gbemu/iors"
 	"github.com/khoakmp/gbemu/mmu/mbc"
 	"github.com/khoakmp/gbemu/mmu/oam"
@@ -29,7 +30,12 @@ func TestMmu(t *testing.T) {
 	vRam := vram.NewGbVram()
 	mBC := mbc.NewMbc1(64<<10, 16<<10)
 	iorg := iors.NewMockIORegisterSet()
-	mUnit := NewGbMmu(vRam, iorg, oAm, mBC)
+	interrupts := intr.NewInterrupts()
+
+	mUnit := NewGbMmu(vRam, iorg, oAm, mBC, interrupts.IE)
+	t.Run("IE", func(t *testing.T) {
+		mUnit.Write8Bit(0xffff, uint8(12))
+	})
 	t.Run("wram", func(t *testing.T) {
 		mUnit.Write8Bit(0xc000, 10)
 		val := mUnit.Read8Bit(0xc000)
@@ -118,7 +124,7 @@ func TestMmu(t *testing.T) {
 		}
 		t.Run("tile_data", func(t *testing.T) {
 			tile := vram.RandomTile()
-			vRam.GetTiles().SetTile(tileIdx, true, &tile)
+			vRam.GetTileRegion().SetTile(tileIdx, true, &tile)
 			var t1 vram.Tile
 
 			var data [16]uint8
@@ -138,4 +144,5 @@ func TestMmu(t *testing.T) {
 			assert.Equal(t, tileIdx, tidx, "Not Equal Tile Index in BG map")
 		})
 	})
+
 }

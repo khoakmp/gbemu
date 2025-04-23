@@ -1,6 +1,8 @@
 package timer
 
 import (
+	"fmt"
+
 	"github.com/khoakmp/gbemu/intr"
 )
 
@@ -58,6 +60,7 @@ TMA	0xFF06	Timer Modulo – value loaded into TIMA when it overflows.
 TAC	0xFF07	Timer Control – selects timer frequency and enables/disables the timer.
 */
 func (t *TimerSystem) Write8Bit(address uint16, value uint8) {
+	fmt.Printf("Write to timer at 0x%x val: %d\n", address, value)
 	switch address {
 	case 0xff04:
 		t.ResetDIV()
@@ -66,9 +69,11 @@ func (t *TimerSystem) Write8Bit(address uint16, value uint8) {
 	case 0xff06:
 		t.state.TMA = value
 	case 0xff07:
-		if (value & (1 << 2)) > 0 {
-			t.state.TimerEnable = true
-		}
+		t.state.TimerEnable = (value >> 2) != 0
+		/*
+			if (value & (1 << 2)) > 0 {
+				t.state.TimerEnable = true
+			} */
 		t.state.ClockSelect = value & 3
 	}
 }
@@ -88,6 +93,9 @@ func (t *TimerSystem) Read8Bit(address uint16) uint8 {
 		}
 		ans |= t.state.ClockSelect & 3
 		return ans
+	default:
+		fmt.Println("Read address in timer :", address)
+		panic("invalid address")
 	}
 	return 0
 }
@@ -128,6 +136,7 @@ func (t *TimerSystem) increment(n uint8) {
 	for i := uint8(0); i < n; i++ {
 		t.state.TIMA = (t.state.TIMA + 1) & 255
 		if t.state.TIMA == 0 {
+			fmt.Println("Trigger Timer Interrupt")
 			t.iF.SetTimerInterrupt(true)
 			t.state.TIMA = t.state.TMA
 		}

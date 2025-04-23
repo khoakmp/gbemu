@@ -24,10 +24,10 @@ func newResInstruction(opCode, length, cycles uint8, R args.RW8Bit) *ResInstruct
 func (r *ResInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	n := (r.OpCode >> 3) & 7
 	//n := r.R1.Read8Bit(nil, nil, param)
-	val := r.R.Read8Bit(nil, nil, 0)
+	val := r.R.Read8Bit(nil, mmUnit, 0)
 	val &= ^uint8(1 << n)
 	// unchange flags
-	r.R.Write8Bit(nil, nil, 0, val)
+	r.R.Write8Bit(nil, mmUnit, 0, val)
 	return r.Cycles
 }
 
@@ -49,10 +49,10 @@ func newSetInstruction(opCode, length, cycles uint8, R args.RW8Bit) *SetInstruct
 func (r *SetInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	n := (r.OpCode >> 3) & 7
 	//n := r.R1.Read8Bit(nil, nil, param)
-	val := r.R.Read8Bit(nil, nil, 0)
+	val := r.R.Read8Bit(nil, mmUnit, 0)
 	val |= uint8(1 << n)
 	// unchange flags
-	r.R.Write8Bit(nil, nil, 0, val)
+	r.R.Write8Bit(nil, mmUnit, 0, val)
 	return r.Cycles
 }
 

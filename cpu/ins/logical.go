@@ -52,12 +52,14 @@ func runCPL(regSet *rs.RegisterSet) {
 		 	H (Half Carry): Always set to 1.
 		  C (Carry): Not affected (remains unchanged).
 	*/
+	a := regSet.A.Read8Bit()
+	regSet.A.Write8Bit(^a)
+
 	regSet.F.SetFlag(rs.FlagN, true)
 	regSet.F.SetFlag(rs.FlagH, true)
 }
 func (l *LogicalInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
 	var val uint8 = l.R.Read8Bit(regSet, mmUnit, param)
-
 	switch l.bitwise {
 	case AND:
 		runAND(regSet, val)
@@ -213,6 +215,8 @@ func (cf *CFInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	regSet.F.SetFlag(rs.FlagH, false)
 	switch cf.OpCode {
 	case 0x37:
+		// Z N H C: - 0 0 1
+
 		regSet.F.SetFlag(rs.FlagC, true)
 		return
 	case 0x3f:

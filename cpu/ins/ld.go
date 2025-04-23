@@ -13,7 +13,22 @@ type Ld8BitInstruction struct {
 }
 
 func (l *Ld8BitInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
-	l.R1.Write8Bit(regSet, mmUnit, param, l.R2.Read8Bit(regSet, mmUnit, param))
+
+	val := l.R2.Read8Bit(regSet, mmUnit, param)
+	/* switch r1 := l.R1.(type) {
+	case *args.MemArg:
+		addr := r1.AddrHolder.Read16Bit(regSet, mmUnit, param)
+		//println("write to address", addr)
+		log.Printf("\t Load %d into mem addr: %x\n", val, addr)
+	default:
+		log.Printf("\t Load %d into reg\n", val)
+	}
+	switch r2 := l.R2.(type) {
+	case *args.MemArg:
+		log.Printf("\t Load data at addr %x\n", r2.AddrHolder.Read16Bit(regSet, mmUnit, param))
+	} */
+	//log.Println("Ld8Bit R1 type:", reflect.TypeOf(l.R1))
+	l.R1.Write8Bit(regSet, mmUnit, param, val)
 	return l.Cycles
 }
 
@@ -24,12 +39,26 @@ type Ld16BitInstruction struct {
 }
 
 func (l *Ld16BitInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
+	/* val := l.R2.Read16Bit(regSet, mmUnit, param)
+	switch r1 := l.R1.(type) {
+	case *args.MemArg:
+		addr := r1.AddrHolder.Read16Bit(regSet, mmUnit, param)
+		//println("write to address", addr)
+		log.Printf("\t Load %d into mem addr: %x\n", val, addr)
+	default:
+		log.Printf("\t Load %d into reg\n", val)
+	}
+	switch r2 := l.R2.(type) {
+	case *args.MemArg:
+		log.Printf("\t Load data at addr %x\n", r2.AddrHolder.Read16Bit(regSet, mmUnit, param))
+	} */
 	l.R1.Write16Bit(regSet, mmUnit, param, l.R2.Read16Bit(regSet, mmUnit, param))
 	return l.Cycles
 }
 
 func newLd8BitInstruction(opcode, length, cycles uint8,
 	R1 args.Write8Bit, R2 args.Read8Bit) Instruction {
+
 	return &Ld8BitInstruction{
 		InstructionBase: InstructionBase{
 			OpCode: opcode,
@@ -65,13 +94,15 @@ type LdHlSpInstruction struct {
 }
 
 func (l *LdHlSpInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
+	//log.Println("Run Ldhlsp")
 	n := uint16(int16(int8(uint8(param))))
 	sp := regSet.SP.Read16Bit()
 	val := n + sp
+	// TODO: check later
 	regSet.F.SetFlag(rs.FlagH, (n&15+sp&15) > 15)
 	regSet.F.SetFlag(rs.FlagC, (uint32(n)+uint32(sp)) > 65535)
 	regSet.F.SetFlag(rs.FlagN, false)
-	regSet.F.SetFlag(rs.FlagZ, val == 0)
+	regSet.F.SetFlag(rs.FlagZ, false)
 	regSet.HL.Write16Bit(val)
 	return l.Cycles
 }
@@ -85,34 +116,43 @@ func newLdHlSpInstruction(opCode, length, cycle uint8) Instruction {
 		},
 	}
 }
+
 func (l *Ld8BitUpdateHLInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
 	//println("run Ld8BitUpdateHLInstruction")
 	writeAToMemHL := func() (addr uint16) {
 		var a uint8 = regSet.A.Read8Bit()
 		addr = regSet.HL.Read16Bit()
+		//log.Printf("HL store address %x\n", addr)
 		//println("address stored in HL:", addr)
 		mmUnit.Write8Bit(addr, a)
 		//println("write value:", a)
 		return
 	}
+
 	writeMemHLToA := func() (addr uint16) {
 		addr = regSet.HL.Read16Bit()
+		//log.Printf("HL to A, HL++, HL store address %x\n", addr)
 		var val uint8 = mmUnit.Read8Bit(addr)
 		regSet.A.Write8Bit(val)
 		return
 	}
 	switch l.OpCode {
 	case 0x22:
+		//log.Println("A to HL, HL++")
 		addr := writeAToMemHL()
 		regSet.HL.Write16Bit(addr + 1)
 	case 0x2a:
+		//log.Println("HL to A, HL++")
 		addr := writeMemHLToA()
 		regSet.HL.Write16Bit(addr + 1)
 	case 0x32:
+		//log.Println("A to HL, HL--")
 		//println("run instruction 0x32")
 		addr := writeAToMemHL()
 		regSet.HL.Write16Bit(addr - 1)
 	case 0x3a:
+		//log.Println("HL to A, HL--")
+
 		addr := writeMemHLToA()
 		regSet.HL.Write16Bit(addr - 1)
 	}
@@ -235,6 +275,7 @@ func (s *InstructionSet) initLds(as *args.ArgumentSet) {
 	s.add(newLd16BitInstruction(0x31, 3, 12, as.SPw, as.Num16bit))
 
 	s.add(newLd16BitInstruction(0xf9, 1, 8, as.SPw, as.HLw))
+
 	// LD HL, SP+n	| 0xF8	| 12	| Load SP + n (signed) into HL
 	s.add(newLdHlSpInstruction(0xf8, 2, 12))
 	s.add(newLd16BitInstruction(0x08, 3, 20, as.MemArgNum16Bit, as.SPw))

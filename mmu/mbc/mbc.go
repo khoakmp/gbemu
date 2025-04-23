@@ -16,7 +16,7 @@ const (
 	EXT_RAM_END_ADDRESS   = 0xbfff
 )
 
-func CreateMBC(mbcType int, romBuffer []uint8, ramSize uint8) MBC {
+func CreateMBC(mbcType int, romBuffer []uint8, ramSize uint32) MBC {
 	switch mbcType {
 	case 0x13:
 		return NewMbc3x13(ramSize, romBuffer)

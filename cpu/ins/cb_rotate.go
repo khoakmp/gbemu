@@ -15,16 +15,16 @@ type RlcInstruction struct {
 // 64 * 3 = 192
 // 192 + 64 = 256 for all
 func (r *RlcInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := r.R.Read8Bit(nil, nil, 0)
+	val := r.R.Read8Bit(nil, mmUnit, 0)
 
-	regSet.F.GetFlag(rs.FlagC)
+	//regSet.F.GetFlag(rs.FlagC)
 	bit7 := val >> 7
 	val = bit7 | (val << 1)
 	regSet.F.SetFlag(rs.FlagH, false)
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
 	regSet.F.SetFlag(rs.FlagC, bit7 == 1)
-	r.R.Write8Bit(nil, nil, 0, val)
+	r.R.Write8Bit(nil, mmUnit, 0, val)
 	return r.Cycles
 }
 func NewRlcInstruction(opCode, length, cycles uint8, R args.RW8Bit) *RlcInstruction {
@@ -54,7 +54,7 @@ func NewRlInstruction(opCode, length, cycles uint8, R args.RW8Bit) *RlInstructio
 	}
 }
 func (r *RlInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := r.R.Read8Bit(nil, nil, 0)
+	val := r.R.Read8Bit(nil, mmUnit, 0)
 	bit7 := val >> 7
 	carry := regSet.F.GetFlag(rs.FlagC)
 	val = (val << 1)
@@ -65,7 +65,7 @@ func (r *RlInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
 	regSet.F.SetFlag(rs.FlagC, bit7 == 1)
-	r.R.Write8Bit(nil, nil, 0, val)
+	r.R.Write8Bit(nil, mmUnit, 0, val)
 	return r.Cycles
 }
 
@@ -86,14 +86,14 @@ func NewRrcInstruction(opCode, length, cycles uint8, R args.RW8Bit) *RrcInstruct
 }
 
 func (r *RrcInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := r.R.Read8Bit(nil, nil, 0)
+	val := r.R.Read8Bit(nil, mmUnit, 0)
 	bit0 := val & 1
 	val = (val >> 1) | (bit0 << 7)
 	regSet.F.SetFlag(rs.FlagC, bit0 == 1)
 	regSet.F.SetFlag(rs.FlagH, false)
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
-	r.R.Write8Bit(nil, nil, 0, val)
+	r.R.Write8Bit(nil, mmUnit, 0, val)
 	return r.Cycles
 }
 
@@ -113,7 +113,7 @@ func NewRrInstruction(opCode, length, cycles uint8, R args.RW8Bit) *RrInstructio
 	}
 }
 func (r *RrInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := r.R.Read8Bit(nil, nil, 0)
+	val := r.R.Read8Bit(nil, mmUnit, 0)
 	bit0 := val & 1
 	carry := regSet.F.GetFlag(rs.FlagC)
 	val >>= 1
@@ -124,7 +124,7 @@ func (r *RrInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16
 	regSet.F.SetFlag(rs.FlagH, false)
 	regSet.F.SetFlag(rs.FlagN, false)
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
-	r.R.Write8Bit(nil, nil, 0, val)
+	r.R.Write8Bit(nil, mmUnit, 0, val)
 	return r.Cycles
 }
 

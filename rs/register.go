@@ -43,6 +43,7 @@ func (r *Register16Bit) Type() uint8 { return Reg16Bit }
 type DualRegister struct {
 	lower Reg8BitInterface
 	upper Reg8BitInterface
+	name  string
 }
 
 func (dr *DualRegister) Read8Bit() uint8     { return 0 }

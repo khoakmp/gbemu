@@ -1,6 +1,8 @@
 package vram
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 type Tile struct {
 	data [16]uint8
@@ -9,6 +11,7 @@ type Tile struct {
 func (t *Tile) Write8Bit(offset uint16, value uint8) {
 	t.data[offset] = value
 }
+
 func (t *Tile) Read8Bit(offset uint16) uint8 {
 	return t.data[offset]
 }
@@ -29,6 +32,7 @@ func (t *Tile) GetRaw() [16]uint8 {
 func (t *Tile) SetRaw(data []uint8) {
 	copy(t.data[:], data)
 }
+
 func (t *Tile) Print() {
 	var colors [8]uint8
 	for i := uint8(0); i < 8; i++ {
@@ -89,18 +93,25 @@ func (t *Tile) FlipXY() (ans Tile) {
 // should be array of 8 color
 func (t *Tile) GetRowColors(r uint8) (ans [8]uint8) {
 	for i := 0; i < 8; i++ {
-		var upper uint8 = (t.data[r<<1|1] & (1 << i)) >> i
-		var lower uint8 = (t.data[r<<1] & (1 << i)) >> i
-		ans[i] = (upper << 1) | lower
+		var upper uint8 = (t.data[r<<1|1] >> i) & 1
+		var lower uint8 = (t.data[r<<1] >> i) & 1
+		ans[7-i] = (upper << 1) | lower
 	}
 	return
+}
+
+func (t *Tile) GetColorAt(r, c uint8) uint8 {
+
+	var lower uint8 = (t.data[r<<1] >> (7 - c)) & 1
+	var upper uint8 = (t.data[r<<1|1] >> (7 - c)) & 1
+	return upper<<1 | lower
 }
 
 func (t *Tile) GetRowColorsRange(r, startCol uint8, ans []uint8) {
 	//ans = make([]uint8, size)
 	for i := startCol; i < startCol+uint8(len(ans)); i++ {
-		var upper uint8 = (t.data[r<<1|1] & (1 << i)) >> i
-		var lower uint8 = (t.data[r<<1] & (1 << i)) >> i
+		var upper uint8 = (t.data[r<<1|1] >> i) & 1
+		var lower uint8 = (t.data[r<<1] >> i) & 1
 		ans[i-startCol] = (upper << 1) | lower
 	}
 }

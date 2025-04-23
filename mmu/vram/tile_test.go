@@ -35,7 +35,7 @@ func (v *VirtualTile) FlipXY() (ans VirtualTile) {
 	}
 	return
 }
-func converToTile(vt *VirtualTile) Tile {
+func (vt *VirtualTile) converToTile() Tile {
 	tile := Tile{}
 	for r := uint8(0); r < 8; r++ {
 		for c := uint8(0); c < 8; c++ {
@@ -57,24 +57,24 @@ func randomVirtualTile() (v VirtualTile) {
 
 func TestTileOperation(t *testing.T) {
 	vt := randomVirtualTile()
-	tile := converToTile(&vt)
+	tile := vt.converToTile()
 	//converToTile(&vt)
 	t.Run("flipX", func(t *testing.T) {
 		tile1 := tile.FlipX()
 		x := vt.FlipX()
-		tile2 := converToTile(&x)
+		tile2 := x.converToTile()
 		assert.Equal(t, true, tile1.Equal(&tile2))
 	})
 	t.Run("flipY", func(t *testing.T) {
 		tile1 := tile.FlipY()
 		x := vt.FlipY()
-		tile2 := converToTile(&x)
+		tile2 := x.converToTile()
 		assert.Equal(t, true, tile1.Equal(&tile2))
 	})
 	t.Run("flipXY", func(t *testing.T) {
 		tile1 := tile.FlipXY()
 		x := vt.FlipXY()
-		tile2 := converToTile(&x)
+		tile2 := x.converToTile()
 		assert.Equal(t, true, tile1.Equal(&tile2))
 	})
 }

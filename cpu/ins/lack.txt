@@ -1,17 +1,17 @@
-7
-15
-23
-31
-39
-203
-211
-219
-221
-227
-228
-235
-236
-237
-244
-252
-253
+7   RLCA
+15  RRCA 
+23  RLA  Rotate A left through carry
+31  RRA 
+39  DAA Decimal adjust A after BCD operation 
+203 // CB prefix
+211 // D3 not support by gameboy
+219 // DB not support
+221 // DD not support 
+227 // E3 not support 
+228 // E4 not support 
+235 // EB not sp
+236 // EC :
+237 // ED  
+244 // F4 not  
+252 // FC 
+253 // FD

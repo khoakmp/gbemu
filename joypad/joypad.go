@@ -1,6 +1,8 @@
 package joypad
 
-import "github.com/khoakmp/gbemu/intr"
+import (
+	"github.com/khoakmp/gbemu/intr"
+)
 
 /*
 D-pad selected (0x20 written):
@@ -68,10 +70,14 @@ func (j *GbJoypad) Write8Bit(address uint16, val uint8) {
 }
 
 func (j *GbJoypad) SetButtonState(button ButtonCode, press bool) {
+	// TODO: update IF
+
 	if press {
 		if j.btnStates&(1<<button) == 0 {
 			return
 		}
+		//fmt.Println("Set Joypad interrupt")
+		j.iF.SetJoypadInterrupt(true)
 		j.btnStates &= ^uint8(1 << button)
 		return
 	}
@@ -79,5 +85,8 @@ func (j *GbJoypad) SetButtonState(button ButtonCode, press bool) {
 	if j.btnStates&(1<<button) == 1 {
 		return
 	}
+	//fmt.Println("Set Joypad interrupt")
+
+	j.iF.SetJoypadInterrupt(true)
 	j.btnStates |= uint8(1 << button)
 }

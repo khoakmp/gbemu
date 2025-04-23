@@ -15,7 +15,11 @@ func (b *BitInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	n := (b.OpCode >> 3) & 7
 	// ok dau tien se la register ->
 	//n := b.R1.Read8Bit(nil, nil, param)
-	val := b.R.Read8Bit(nil, nil, 0)
+	/* switch r := b.R.(type) {
+	case *args.MemArg:
+		fmt.Printf("Read at addr 0x%x\n", r.AddrHolder.Read16Bit(regSet, mmUnit, param))
+	} */
+	val := b.R.Read8Bit(nil, mmUnit, 0)
 
 	bitn := val & (1 << n)
 	regSet.F.SetFlag(rs.FlagZ, bitn == 0)
@@ -36,6 +40,7 @@ func NewBitInstruction(opCode, length, cycles uint8, R args.Read8Bit) *BitInstru
 func (s *CbInstructionSet) initBits(as *args.ArgumentSet) {
 	var opcode uint8 = 0x40
 	for i := 0; i < 8; i++ {
+
 		s.add(NewBitInstruction(opcode, 1, 8, as.Bw))
 		s.add(NewBitInstruction(opcode+1, 1, 8, as.Cw))
 		s.add(NewBitInstruction(opcode+2, 1, 8, as.Dw))

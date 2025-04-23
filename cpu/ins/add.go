@@ -14,7 +14,7 @@ type Add8BitInstruction struct {
 
 func calAdd8bit(x, y uint8, regs *rs.RegisterSet) (ans uint8) {
 	regs.F.SetFlag(rs.FlagN, false)
-	regs.F.SetFlag(rs.FlagC, (x+y) > 255)
+	regs.F.SetFlag(rs.FlagC, uint16(x)+uint16(y) > 255)
 	regs.F.SetFlag(rs.FlagH, (x&15)+(y&15) > 15)
 	ans = uint8(x + y)
 	regs.F.SetFlag(rs.FlagZ, ans == 0)
@@ -40,17 +40,25 @@ func calAdd16bit(x, y uint16, regs *rs.RegisterSet) (ans uint16) {
 	regs.F.SetFlag(rs.FlagC, uint32(x)+uint32(y) > 65535)
 	// add 2 value 16 bit unsigned => check half carry from bit 11 to bit 12
 	regs.F.SetFlag(rs.FlagH, (x&4095)+(y&4095) > 4095)
-	ans = uint16(x + y)
-	regs.F.SetFlag(rs.FlagZ, ans == 0)
+	ans = x + y
+	//regs.F.SetFlag(rs.FlagZ, ans == 0) // not affected
 	return
 }
 
 func (a *Add16BitInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
+
 	var adder uint16 = a.R2.Read16Bit(regSet, mmUnit, param)
 	var val = a.R1.Read16Bit(regSet, mmUnit, param)
-	ans := calAdd16bit(val, adder, regSet)
+	var ans uint16
 	if a.OpCode == 0xe8 {
+		// TODO: check here
 		regSet.F.SetFlag(rs.FlagH, (val&15)+(adder&15) > 15)
+		regSet.F.SetFlag(rs.FlagZ, false)
+		regSet.F.SetFlag(rs.FlagC, (val&255)+(adder&255) > 255)
+		regSet.F.SetFlag(rs.FlagN, false)
+		ans = adder + val
+	} else {
+		ans = calAdd16bit(val, adder, regSet)
 	}
 	a.R1.Write16Bit(regSet, mmUnit, param, ans)
 	return a.Cycles
@@ -97,7 +105,7 @@ func (s *InstructionSet) initAdds(as *args.ArgumentSet) {
 	s.add(newAdd16BitInstruction(0x09, 1, 8, as.HLw, as.BCw))
 	s.add(newAdd16BitInstruction(0x19, 1, 8, as.HLw, as.DEw))
 	s.add(newAdd16BitInstruction(0x29, 1, 8, as.HLw, as.HLw))
-	s.add(newAdd16BitInstruction(0x39, 1, 8, as.HLw, as.PCw))
+	s.add(newAdd16BitInstruction(0x39, 1, 8, as.HLw, as.SPw))
 
 	// TODO: change add SP, n
 	s.add(newAdd16BitInstruction(0xe8, 2, 16, as.SPw, &args.Num16BitFrom8BitSigned{}))

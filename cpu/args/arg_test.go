@@ -3,6 +3,7 @@ package args
 import (
 	"testing"
 
+	"github.com/khoakmp/gbemu/intr"
 	"github.com/khoakmp/gbemu/iors"
 	"github.com/khoakmp/gbemu/mmu"
 	"github.com/khoakmp/gbemu/mmu/mbc"
@@ -140,7 +141,8 @@ func TestArgumentSet(t *testing.T) {
 		vRam := vram.NewGbVram()
 		iorg := iors.NewMockIORegisterSet()
 		mBC := mbc.NewMbc1(64<<10, 16<<10)
-		mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
+		iE := intr.IE{}
+		mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC, &iE)
 		arguments := NewArgumentSet(regSet)
 		// WRAM: [0xc000:0xe000]
 		var addr uint16 = 0xe000

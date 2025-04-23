@@ -1,6 +1,8 @@
 package ins
 
 import (
+	"fmt"
+
 	"github.com/khoakmp/gbemu/cpu/args"
 	"github.com/khoakmp/gbemu/mmu"
 	"github.com/khoakmp/gbemu/rs"
@@ -12,9 +14,17 @@ type PushInstruction struct {
 }
 
 func PushWordOntoStack(regSet *rs.RegisterSet, mmUnit mmu.MMU, val uint16) {
-	newSpAddr := regSet.SP.Read16Bit() - 2
-	regSet.SP.Write16Bit(newSpAddr)
-	mmUnit.Write16Bit(newSpAddr, val)
+
+	newSpAddr := int(regSet.SP.Read16Bit()) - 2
+	if newSpAddr < 0x8000 {
+		fmt.Println("newSPAddr:", newSpAddr)
+		panic("Stack overflow !!!")
+	}
+	if newSpAddr >= 0xff00 && newSpAddr < 0xff80 {
+		panic("SP is in IO register area!!!")
+	}
+	regSet.SP.Write16Bit(uint16(newSpAddr))
+	mmUnit.Write16Bit(uint16(newSpAddr), val)
 }
 
 func (p *PushInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {

@@ -38,6 +38,8 @@ func (jp *JpInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	}
 	addr := jp.R.Read16Bit(regSet, mmUnit, param)
 	regSet.PC.Write16Bit(addr)
+	// test at 0x1c31, 0x1ca3
+	//fmt.Printf("jump to %x\n", addr)
 	return 16
 }
 func newJpInstruction(opCode, length, cycles uint8, R args.Read16Bit) Instruction {

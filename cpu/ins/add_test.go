@@ -1,6 +1,7 @@
 package ins
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/khoakmp/gbemu/rs"
@@ -41,9 +42,12 @@ func TestAdd(t *testing.T) {
 		assert.Equal(t, uint16(140), HL.Read16Bit())
 
 		HL.Write16Bit(11)
+		fmt.Println(HL.Read16Bit())
+
 		regSet.SP.Write16Bit(129)
-		ins = inSet.instructions[0x09]
+		ins = inSet.instructions[0x39]
 		ins.Run(regSet, mUnit, 0)
+		fmt.Println(HL.Read16Bit())
 		assert.Equal(t, uint16(140), HL.Read16Bit())
 	})
 	t.Run("add_to_SP", func(t *testing.T) {

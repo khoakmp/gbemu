@@ -17,12 +17,16 @@ func (tr *TileRegion) Read8Bit(offset uint16) uint8 {
 }
 
 func (tr *TileRegion) Write8Bit(offset uint16, val uint8) {
+	//fmt.Println("Write to tile:", offset>>4)
 	tr.tiles[offset>>4].Write8Bit(offset&15, val)
 }
 
 func (tr *TileRegion) Read16Bit(offset uint16) uint16 {
-	return 0
+	lower := tr.Read8Bit(offset)
+	upper := tr.Read8Bit(offset + 1)
+	return uint16(upper)<<8 | uint16(lower)
 }
+
 func (tr *TileRegion) GetTile(index uint8, modeUnsigned bool) *Tile {
 	if modeUnsigned {
 		return tr.tiles[index]

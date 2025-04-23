@@ -34,21 +34,25 @@ func NewRegisterSet() *RegisterSet {
 	rs.BC = &DualRegister{
 		lower: rs.C,
 		upper: rs.B,
+		name:  "BC",
 	}
 
 	rs.DE = &DualRegister{
 		lower: rs.E,
 		upper: rs.D,
+		name:  "DE",
 	}
 
 	rs.HL = &DualRegister{
 		lower: rs.L,
 		upper: rs.H,
+		name:  "HL",
 	}
 
 	rs.AF = &DualRegister{
 		lower: rs.F,
 		upper: rs.A,
+		name:  "AF",
 	}
 	return &rs
 }

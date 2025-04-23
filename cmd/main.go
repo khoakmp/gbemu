@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	/* f, _ := os.Open("pokemon.gb")
+	/* f, _ := os.Open("../rom/pokemon.gb")
 	defer f.Close()
 	var buf []byte = make([]byte, 80)
 	baseAddr := 0x0100

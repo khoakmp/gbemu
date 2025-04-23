@@ -26,7 +26,7 @@ func NewGbCpu(mmu mmu.MMU, regSet *rs.RegisterSet) *GbCPU {
 }
 
 // Not advance PC register
-func (c *GbCPU) PeekInstruction() (instruction ins.Instruction, param uint16) {
+func (c *GbCPU) PeekInstruction() (instruction ins.Instruction, cbPrefix bool, param uint16) {
 	address := c.regSet.PC.Read16Bit()
 	opcode := c.memUnit.Read8Bit(address)
 	if opcode != 0xcb {
@@ -41,6 +41,7 @@ func (c *GbCPU) PeekInstruction() (instruction ins.Instruction, param uint16) {
 		}
 		return
 	}
+	cbPrefix = true
 	opcode = c.memUnit.Read8Bit(address + 1)
 	instruction = c.cbInstructionSet.GetInstruction(opcode)
 	return

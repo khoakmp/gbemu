@@ -12,6 +12,7 @@ type RetiInstruction struct {
 
 func (r *RetiInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	retAddr := popWordFromStack(regSet, mmUnit)
+	//fmt.Println("Enable IME")
 	regSet.IME = true
 	regSet.PC.Write16Bit(retAddr)
 	return r.Cycles

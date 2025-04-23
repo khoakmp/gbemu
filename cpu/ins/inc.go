@@ -19,12 +19,12 @@ INC (HL)  ; Increment value at address in HL
 func (inc *Inc8BitInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	regSet.F.SetFlag(rs.FlagN, false)
 	var x uint8 = inc.R.Read8Bit(regSet, mmUnit, param)
-	var val uint16 = uint16(x) + uint16(1)
+	var val uint8 = x + 1
 	// Inc 8bit not affect Carry flag
 	//regSet.F.SetFlag(rs.FlagC, val > 255)
 	regSet.F.SetFlag(rs.FlagH, ((x&15)+1) > 15)
-	regSet.F.SetFlag(rs.FlagZ, uint8(val) == 0)
-	inc.R.Write8Bit(regSet, mmUnit, param, uint8(val))
+	regSet.F.SetFlag(rs.FlagZ, val == 0)
+	inc.R.Write8Bit(regSet, mmUnit, param, val)
 	return inc.Cycles
 }
 
@@ -40,7 +40,7 @@ func (inc *Inc16BitInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, para
 	//regSet.F.SetFlag(rs.FlagC, val > 65535)
 	//regSet.F.SetFlag(rs.FlagH, ((x1&255)+1) > 255)
 	//regSet.F.SetFlag(rs.FlagZ, uint8(val) == 0)
-	inc.R.Write16Bit(regSet, mmUnit, param, uint16(x1+1))
+	inc.R.Write16Bit(regSet, mmUnit, param, x1+1)
 	return inc.Cycles
 }
 

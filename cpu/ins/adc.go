@@ -27,6 +27,7 @@ func (a *AdcInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint1
 	regSet.F.SetFlag(rs.FlagH, ((x1&15)+(x2&15)+(x3&15)) > 15)
 	var ans uint8 = uint8(s)
 	regSet.F.SetFlag(rs.FlagZ, ans == 0)
+	regSet.F.SetFlag(rs.FlagN, false)
 	a.R1.Write8Bit(regSet, mmUnit, param, ans)
 	return a.Cycles
 }

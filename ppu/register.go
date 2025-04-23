@@ -1,5 +1,7 @@
 package ppu
 
+import "fmt"
+
 const (
 	LCDC_ADDRESS = 0xff40
 	STAT_ADDRESS = 0xff41
@@ -36,7 +38,7 @@ func (l *Lcdc) GetBackgroundTileMap() uint8 {
 	return l.BackgroundTileMap
 }
 
-func (l *Lcdc) GetSpriteHeight() (height16 bool) {
+func (l *Lcdc) GetSpriteHeight16() (height16 bool) {
 	return l.SpriteHeight == 1
 }
 
@@ -76,13 +78,15 @@ func (l *Lcdc) Read8Bit() uint8 {
 	return ans
 }
 func (l *Lcdc) Write8Bit(value uint8) {
+	fmt.Printf("Write  to LCDC: %b \n", value)
+	//panic("reach")
 	l.LcdEnable = (value >> 7) != 0
 	l.WindowTileMap = (value >> 6) & 1
 	l.WindowEnable = ((value >> 5) & 1) != 0
 	l.WindowBgTileData = (value >> 4) & 1
 	l.BackgroundTileMap = (value >> 3) & 1
 	l.SpriteHeight = (value >> 2) & 1
-	l.SpriteEnable = (value >> 1) != 0
+	l.SpriteEnable = (value>>1)&1 != 0
 	l.BackgroundEnable = (value & 1) != 0
 }
 
@@ -160,7 +164,7 @@ func (s *Stat) SetMode(mode uint8) {
 }
 
 func (s *Stat) Read8Bit() uint8 {
-	var ans uint8
+	var ans uint8 = 1 << 7
 	if s.EnableInterruptLyEqualLyc {
 		ans |= 1 << 6
 	}
@@ -196,64 +200,79 @@ type PpuState struct {
 	LY, LYC         uint8
 	STAT            *Stat
 	LCDC            *Lcdc
+
+	writeLcdcNum int
 }
 
-func (r *PpuState) Read8Bit(address uint16) uint8 {
+func (s *PpuState) Read8Bit(address uint16) uint8 {
 	// TODO:
 	switch address {
 	case LCDC_ADDRESS:
-		return r.LCDC.Read8Bit()
+		//val := s.LCDC.Read8Bit()
+		//fmt.Println("Read LCDC, val:", val)
+		return s.LCDC.Read8Bit()
 	case STAT_ADDRESS:
-		return r.STAT.Read8Bit()
+		//fmt.Println("Read Stat")
+		return s.STAT.Read8Bit()
 	case SCY_ADDRESS:
-		return r.SCY
+		return s.SCY
 	case SCX_ADDRESS:
-		return r.SCX
+		return s.SCX
 	case LY_ADDRESS:
-		return r.LY
+		//fmt.Println("Read LY,value=", s.LY)
+		return s.LY
 	case LYC_ADDRESS:
-		return r.LYC
-	case DMA_ADDRESS:
-		// TODO: ...
+		//fmt.Println("Read LYC, value:", s.LYC)
+		return s.LYC
+
 	case BGP_ADDRESS:
-		return r.BGP
+		return s.BGP
 	case OBP0_ADDRESS:
-		return r.OBP0
+		return s.OBP0
 	case OBP1_ADDRESS:
-		return r.OBP1
+		return s.OBP1
 	case WY_ADDRESS:
-		return r.WY
+		return s.WY
 	case WX_ADDRESS:
-		return r.WX
+		return s.WX
 	}
-	return 0
+	//fmt.Println("Read address", address)
+	panic("Invalid memory address in range ppu io register")
 }
 
-func (r *PpuState) Write8Bit(address uint16, value uint8) {
+func (s *PpuState) Write8Bit(address uint16, value uint8) {
 	switch address {
 	case LCDC_ADDRESS:
-		r.LCDC.Write8Bit(value)
+		s.LCDC.Write8Bit(value)
 	case STAT_ADDRESS:
-		r.STAT.Write8Bit(value)
+		//fmt.Println("write STAT:", value)
+		s.STAT.Write8Bit(value)
 	case SCY_ADDRESS:
-		r.SCY = value
+		s.SCY = value
 	case SCX_ADDRESS:
-		r.SCX = value
+		s.SCX = value
 	case LY_ADDRESS:
-		r.LY = value
+		s.LY = value
 	case LYC_ADDRESS:
-		r.LYC = value
-	case DMA_ADDRESS:
-		// TODO: ...
+		//fmt.Println("Write to LYC:", value)
+		s.LYC = value
+
 	case BGP_ADDRESS:
-		r.BGP = value
+		//fmt.Println("Write to BGP:", value)
+		//panic("Test ")
+		s.BGP = value
 	case OBP0_ADDRESS:
-		r.OBP0 = value
+		//fmt.Println("Write to OBP0:", value)
+		s.OBP0 = value
 	case OBP1_ADDRESS:
-		r.OBP1 = value
+		//fmt.Println("Write to OBP1:", value)
+		s.OBP1 = value
 	case WY_ADDRESS:
-		r.WY = value
+		s.WY = value
 	case WX_ADDRESS:
-		r.WX = value
+		s.WX = value
+	default:
+		panic("Invalid memory address in range ppu io register")
 	}
+
 }

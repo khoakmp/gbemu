@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/khoakmp/gbemu/cpu/args"
+	"github.com/khoakmp/gbemu/intr"
 	"github.com/khoakmp/gbemu/iors"
 	"github.com/khoakmp/gbemu/mmu"
 	"github.com/khoakmp/gbemu/mmu/mbc"
@@ -121,7 +122,8 @@ func TestLd8BitDualRegister(t *testing.T) {
 	iorg := iors.NewMockIORegisterSet()
 	oAm := oam.NewGbOam()
 	mBC := mbc.NewMbc1(64<<10, 16<<10)
-	mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC)
+	iE := intr.IE{}
+	mUnit := mmu.NewGbMmu(vRam, iorg, oAm, mBC, &iE)
 	regSet := rs.NewRegisterSet()
 	arguments := args.NewArgumentSet(regSet)
 	inSet := NewInstructionSet(arguments)

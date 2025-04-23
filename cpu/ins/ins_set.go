@@ -51,6 +51,9 @@ func NewInstructionSet(arguments *args.ArgumentSet) *InstructionSet {
 
 	// cpu control
 	inSet.initControls()
+
+	inSet.initRotateAs()
+	inSet.initDaa()
 	return inSet
 }
 

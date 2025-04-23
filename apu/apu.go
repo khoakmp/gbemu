@@ -4,6 +4,8 @@ type GbApu struct {
 	channel1, channel2 *SquareChannel
 	channel3           *SampleChannel
 	channel4           *NoiseChannel
+
+	globalEnable bool
 }
 
 func NewGbApu() *GbApu {
@@ -21,6 +23,10 @@ func NewGbApu() *GbApu {
 	}
 }
 
+func (a *GbApu) EnableGlobal(val bool) {
+	a.globalEnable = val
+}
+
 func (a *GbApu) Update(deltaCycles uint8) {
 	a.channel1.Update(deltaCycles)
 	a.channel2.Update(deltaCycles)
@@ -30,6 +36,9 @@ func (a *GbApu) Update(deltaCycles uint8) {
 
 func (a *GbApu) Write8Bit(address uint16, value uint8) {
 	// check wave RAM
+	if !a.globalEnable {
+		return
+	}
 	if address >= 0xff30 {
 		a.channel3.state.Samples[address-0xff30] = value
 	}
@@ -87,10 +96,16 @@ func (a *GbApu) Write8Bit(address uint16, value uint8) {
 		if (value >> 7) == 1 {
 			a.channel4.TriggerEnable()
 		}
+	default:
+		//fmt.Println("write to address in apu not supported:", address)
+		//panic("invalid")
 	}
 }
 
 func (a *GbApu) Read8Bit(address uint16) uint8 {
+	if !a.globalEnable {
+		return 0
+	}
 	if address >= 0xff30 {
 		return a.channel3.state.Samples[address-0xff30]
 	}
@@ -135,6 +150,9 @@ func (a *GbApu) Read8Bit(address uint16) uint8 {
 		return a.channel4.state.NR43.Read8Bit()
 	case 0xff23:
 		return a.channel4.state.NR44.Read8Bit()
+	default:
+		//fmt.Println("read address", address)
+		//panic("Invalid address")
 	}
 	return 0
 }

@@ -12,13 +12,13 @@ type SwapInstruction struct {
 }
 
 func (s *SwapInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
-	val := s.R.Read8Bit(nil, nil, 0)
+	val := s.R.Read8Bit(nil, mmUnit, 0)
 	low := val & 15
 	hight := val >> 4
 	val = (low << 4) | hight
 	regSet.F.ClearAll()
 	regSet.F.SetFlag(rs.FlagZ, val == 0)
-	s.R.Write8Bit(nil, nil, 0, val)
+	s.R.Write8Bit(nil, mmUnit, 0, val)
 	return s.Cycles
 }
 func NewSwapInstruction(opCode, length, cycles uint8, R args.RW8Bit) *SwapInstruction {

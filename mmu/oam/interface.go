@@ -6,4 +6,5 @@ type OAM interface {
 	Write8Bit(offset uint16, val uint8)
 	Write16Bit(offset uint16, val uint16)
 	GetSprite(index uint8) *Sprite
+	Print(num int)
 }

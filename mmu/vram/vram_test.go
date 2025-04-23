@@ -23,7 +23,7 @@ func TestVramAccess(t *testing.T) {
 		} else {
 			tileNum = uint8(tileIdx)
 		}
-		ti := v.GetTiles().GetTile(tileNum, modeUnsigned)
+		ti := v.GetTileRegion().GetTile(tileNum, modeUnsigned)
 		assert.Equal(t, true, ti.Equal(&tile))
 	})
 	t.Run("tile_map", func(t *testing.T) {

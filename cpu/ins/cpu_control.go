@@ -1,6 +1,8 @@
 package ins
 
 import (
+	"fmt"
+
 	"github.com/khoakmp/gbemu/mmu"
 	"github.com/khoakmp/gbemu/rs"
 )
@@ -36,6 +38,7 @@ type DiInstruction struct {
 }
 
 func (d *DiInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
+	fmt.Println("Disalbe IME")
 	regSet.IME = false
 	return d.Cycles
 }
@@ -45,6 +48,7 @@ type EiInstruction struct {
 }
 
 func (e *EiInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) (cycles uint8) {
+	fmt.Println("Delay Enable IME")
 	regSet.DelayEnableInterrupt = true
 	return e.Cycles
 }
@@ -90,6 +94,7 @@ func (s *InstructionSet) initControls() {
 			Cycles: 4,
 		},
 	})
+
 	s.add(&NopInstruction{
 		InstructionBase: InstructionBase{
 			OpCode: 0x00,

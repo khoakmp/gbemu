@@ -55,4 +55,15 @@ func TestCp(t *testing.T) {
 	assert.Equal(t, true, regSet.F.GetFlag(rs.FlagN))
 	assert.Equal(t, true, regSet.F.GetFlag(rs.FlagZ))
 
+	t.Run("n", func(t *testing.T) {
+		A.Write8Bit(12)
+		ins = inSet.instructions[0xfe]
+		ins.Run(regSet, mUnit, 23)
+
+		assert.Equal(t, true, regSet.F.GetFlag(rs.FlagC))
+		assert.Equal(t, true, regSet.F.GetFlag(rs.FlagN))
+		assert.Equal(t, false, regSet.F.GetFlag(rs.FlagH))
+		assert.Equal(t, false, regSet.F.GetFlag(rs.FlagZ))
+
+	})
 }

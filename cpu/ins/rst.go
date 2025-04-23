@@ -18,9 +18,20 @@ RST $20: E7
 RST $28: EF
 RST $30: F7
 RST $38: FF
+
+RST $00 → $0000 (opcode: $C7)
+RST $08 → $0008 (opcode: $CF)
+RST $10 → $0010 (opcode: $D7)
+RST $18 → $0018 (opcode: $DF)
+RST $20 → $0020 (opcode: $E7)
+RST $28 → $0028 (opcode: $EF)
+RST $30 → $0030 (opcode: $F7)
+RST $38 → $0038 (opcode: $FF)
 */
+
 func (r *RstInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	PushWordOntoStack(regSet, mmUnit, regSet.PC.Read16Bit())
+	//fmt.Printf("rst opcode %x\n", r.OpCode)
 	switch r.OpCode {
 	case 0xc7:
 		regSet.PC.Write16Bit(0x00)

@@ -14,13 +14,14 @@ type SbcInstruction struct {
 
 func (s *SbcInstruction) Run(regSet *rs.RegisterSet, mmUnit mmu.MMU, param uint16) uint8 {
 	var x1 uint8 = s.R1.Read8Bit(regSet, mmUnit, 0)
-	var x2 uint8 = s.R2.Read8Bit(regSet, mmUnit, param)
+	var x2 uint16 = uint16(s.R2.Read8Bit(regSet, mmUnit, param))
 	if regSet.F.GetFlag(rs.FlagC) {
 		x2++
 	}
-	regSet.F.SetFlag(rs.FlagH, (x1&15) < (x2&15))
-	regSet.F.SetFlag(rs.FlagC, (x1&255) < (x2&255))
-	ans := uint8(x1 - x2)
+
+	regSet.F.SetFlag(rs.FlagH, (x1&15) < uint8(x2&15))
+	regSet.F.SetFlag(rs.FlagC, (x1&255) < uint8(x2&255))
+	ans := x1 - uint8(x2)
 	regSet.F.SetFlag(rs.FlagZ, ans == 0)
 	s.R1.Write8Bit(regSet, mmUnit, 0, ans)
 	regSet.F.SetFlag(rs.FlagN, true)

@@ -1,10 +1,5 @@
 package apu
 
-import (
-	"fmt"
-	"reflect"
-)
-
 type WaveFormEvent struct {
 	state     uint8
 	timestamp uint64
@@ -57,9 +52,9 @@ func NewWaveFactory(waveGenerator WaveGenerator, eventQueueSize uint32, channel 
 
 func (g *WaveFactory) Reset() {
 	g.freqTimer.Reset(g.channel.GetFrequencyPeriod())
-	fmt.Println("wave generator type:", reflect.TypeOf(g.waveGenertor))
+	//fmt.Println("wave generator type:", reflect.TypeOf(g.waveGenertor))
 	state := g.waveGenertor.Reset()
-	println("reset state:", state)
+	//println("reset state:", state)
 	g.events = append(g.events, WaveFormEvent{
 		state:     g.volume.Envelope(state),
 		timestamp: g.freqTimer.GetCurrentTimestamp(),
