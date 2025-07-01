@@ -9,7 +9,13 @@ import (
 )
 
 func runGb() {
+	if len(os.Args) == 1 {
+		g := gb.NewGameboy("../../rom/pokemon1.gb", true)
+		g.Run()
+		return
+	}
 	cmd := os.Args[1]
+
 	if cmd == "d" {
 		logFile, err := os.OpenFile("log", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 
@@ -26,8 +32,6 @@ func runGb() {
 		return
 	}
 
-	g := gb.NewGameboy("../../rom/pokemon1.gb", true)
-	g.Run()
 	//ReadBootROM()
 }
 
