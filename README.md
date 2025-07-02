@@ -20,6 +20,6 @@ This project aims to emulate the original Nintendo Game Boy hardware as accurate
 Ensure you have **Go 1.20+** installed.
 File Game.gb must be placed in folder rom
 ```bash
-git clone https://github.com/your-username/gameboy-emulator-go.git
+git clone https://github.com/khoakmp/gbemu.git
 cd gb/cmd
 go run .
